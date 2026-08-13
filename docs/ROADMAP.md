@@ -1,29 +1,43 @@
 # Delivery Roadmap
 
-## Phase 1 — Product Research Workbench Alpha ✅
+## Phase 1 — Product Research Workbench MVP ✅
 
 - Local SQLite project/source/evidence/analysis/report pipeline
-- URL and pasted-text import
-- Deterministic local extraction and opportunity scoring
-- Markdown and self-contained HTML report output
-- Safety, privacy, unit/integration, and package validation
+- URL and pasted-text import with SSRF, redirect, timeout, and size controls
+- Deterministic local extraction plus human-reviewed evidence cards
+- Transparent opportunity scoring and Markdown/self-contained HTML reports
+- Full-content opt-in JSON backup/restore, checksum validation, and confirmed deletion
 
-## Phase 2 — Context Switchboard Alpha ✅
+## Phase 2 — Context Switchboard MVP ✅
 
-- Named context profiles, routing rules, activation receipts, and rollback
-- Explicit context budget and provenance
-- No hidden mutation of agent instructions
+- Named profiles, positive/negative routing rules, priority, enable/disable, and token budgets
+- Explicit activation receipts, per-session LIFO history, and rollback
+- Native DSH `systemPrompt.context()` snapshots without replacing persona or policy
+- Profile export/import, conflict diagnosis, and Alpha-database migration
 
-## Phase 3 — Plugin Preflight Alpha ✅
+## Phase 3 — Plugin Preflight MVP ✅
 
-- Bundle/manifest validation, dependency and license checks
-- Permission/network/filesystem risk receipts
-- Install-plan preview without bypassing DSH approvals
+- Bundle patch, manifest, package-content, license, lifecycle, dependency, and capability checks
+- SHA-256 packed-content fingerprint and dependency SBOM
+- Configurable license/scope/capability/risk policy
+- Private Markdown/self-contained HTML audit reports
+- Static-only operation: no scripts, dependency installation, symlink traversal, or registry access
 
-## Phase 4 — Compatibility Radar Alpha ✅
+## Phase 4 — Compatibility Radar MVP ✅
 
-- Installed-version inventory and compatibility matrix
-- DSH release-note/package metadata monitoring
-- Local snapshots, diffs, and upgrade-risk reports
+- Local Profile Bundle discovery and runtime-version inference
+- DSH Tools, Cordis, and Node compatibility matrices
+- SQLite snapshots, diffs, regression detection, and remediation guidance
+- Private Markdown/self-contained HTML upgrade reports
+- No background monitoring or automatic upgrades
 
-All four Alpha packages are implemented, local-first, and independently installable. The next gate is a real pinned DSH RC smoke test, followed by cross-platform hardening and user feedback. npm publication and GitHub Releases remain intentionally deferred.
+## Release gates
+
+- [x] Four independently installable DSH Profile Bundle manifests
+- [x] Node 22.19+/24 test suite and workspace validation
+- [x] Package dry-runs for all four bundles
+- [x] Plugin Preflight self-scans and current/breaking compatibility matrices
+- [x] Isolated installation/config-load/tool-execution smoke test against `@deepseek-ai/dsh@0.1.0-rc.6`
+- [ ] Cross-platform user feedback and hardening
+
+The source repository is public under MIT. npm publication and GitHub Releases remain intentionally deferred pending cross-platform feedback and an explicit release decision.

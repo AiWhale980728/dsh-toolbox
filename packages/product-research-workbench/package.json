@@ -1,7 +1,7 @@
 {
   "name": "@dsh-toolbox/product-research-workbench",
-  "version": "0.1.0-alpha.0",
-  "description": "Local-first URL/text product research, evidence clustering, opportunity scoring, and Markdown/HTML reports for DeepSeek Harness.",
+  "version": "0.2.0",
+  "description": "Local-first URL/text product research, human evidence, lifecycle management, scoring, backup, and Markdown/HTML reports for DeepSeek Harness.",
   "type": "module",
   "main": "./index.js",
   "exports": {
@@ -24,9 +24,11 @@
     "test": "node --test test/*.test.js",
     "check": "npm test && npm pack --dry-run"
   },
+  "dependencies": {
+    "@deepseek-ai/dsh-tools": "0.1.0-rc.6"
+  },
   "peerDependencies": {
-    "@deepseek-ai/cordis": "^4.0.1",
-    "@deepseek-ai/dsh-tools": ">=0.1.0-rc.5 <0.2.0"
+    "@deepseek-ai/cordis": "^4.0.1"
   },
   "dsh": {
     "bundle": {

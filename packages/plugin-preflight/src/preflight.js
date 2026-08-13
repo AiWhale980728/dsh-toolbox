@@ -1,5 +1,6 @@
 import { lstat, readFile, readdir } from 'node:fs/promises'
 import { basename, extname, join, relative, resolve, sep } from 'node:path'
+import { createHash } from 'node:crypto'
 
 const CODE_EXTENSIONS = new Set(['.js', '.mjs', '.cjs', '.ts', '.tsx', '.jsx'])
 const CAPABILITIES = [
@@ -41,8 +42,41 @@ async function walk(root, maxFiles, maxFileBytes) {
 }
 
 function packed(manifest, display) {
+  // npm always includes package.json even when a files allowlist is present.
+  if (display === 'package.json') return true
   if (!Array.isArray(manifest.files)) return true
   return manifest.files.some(value => display === value || display.startsWith(`${String(value).replace(/\/$/, '')}/`))
+}
+
+function parseBundlePatch(text) {
+  const inserts = [...text.matchAll(/^\s*-?\s*(?:id|name):\s*['"]?([^'"#\n]+?)['"]?\s*$/gm)]
+  const ids = [], names = []
+  for (const match of inserts) {
+    const line = match[0]
+    if (/\bid\s*:/.test(line)) ids.push(match[1].trim())
+    if (/\bname\s*:/.test(line)) names.push(match[1].trim())
+  }
+  return { ids, names, hasInsert: /^\s*-\s*insert\s*:/m.test(text) }
+}
+
+function policyFindings(result, policy = {}) {
+  const additions = []
+  const blocked = new Set(policy.blockedCapabilities ?? [])
+  for (const item of result.findings) {
+    if (blocked.has(item.code)) additions.push(finding('high', 'policy-blocked-capability', `Organization policy blocks capability ${item.code}.`, item.path, item.evidence))
+  }
+  const allowedLicenses = Array.isArray(policy.allowedLicenses) ? policy.allowedLicenses : []
+  if (allowedLicenses.length && !allowedLicenses.includes(result.license)) {
+    additions.push(finding('high', 'policy-license', `License ${result.license ?? '(missing)'} is not in the allowed list.`, 'package.json'))
+  }
+  const allowedScopes = Array.isArray(policy.allowedPackageScopes) ? policy.allowedPackageScopes : []
+  if (allowedScopes.length && result.package && !allowedScopes.some(scope => result.package.startsWith(`${scope}/`))) {
+    additions.push(finding('medium', 'policy-package-scope', `Package is outside allowed scopes: ${allowedScopes.join(', ')}.`, 'package.json'))
+  }
+  if (Number.isFinite(policy.maxRiskScore) && result.riskScore > policy.maxRiskScore) {
+    additions.push(finding('high', 'policy-risk-score', `Risk score ${result.riskScore} exceeds policy maximum ${policy.maxRiskScore}.`))
+  }
+  return additions
 }
 
 export async function scanPlugin(inputPath, options = {}) {
@@ -75,6 +109,15 @@ export async function scanPlugin(inputPath, options = {}) {
       findings.push(finding('high', 'patch-not-found', 'Declared bundle patch is absent.', normalized))
     } else if (!packed(manifest, normalized)) {
       findings.push(finding('high', 'patch-not-packed', 'Declared bundle patch is excluded by package.json files.', normalized))
+    } else {
+      const patchText = await readFile(join(root, normalized), 'utf8')
+      const parsedPatch = parseBundlePatch(patchText)
+      if (!parsedPatch.hasInsert) findings.push(finding('high', 'patch-no-insert', 'Bundle patch has no top-level insert operation.', normalized))
+      if (!parsedPatch.ids.length) findings.push(finding('medium', 'patch-no-id', 'Bundle patch does not declare a plugin row id.', normalized))
+      if (!parsedPatch.names.length) findings.push(finding('high', 'patch-no-name', 'Bundle patch does not declare a plugin package name.', normalized))
+      if (manifest.name && parsedPatch.names.length && !parsedPatch.names.includes(manifest.name)) {
+        findings.push(finding('high', 'patch-name-mismatch', `Bundle patch names ${parsedPatch.names.join(', ')} but package is ${manifest.name}.`, normalized))
+      }
     }
   }
   if (!manifest.main && !manifest.exports?.['.'] && typeof manifest.exports !== 'string') {
@@ -109,15 +152,39 @@ export async function scanPlugin(inputPath, options = {}) {
     }
   }
   const weights = { high: 25, medium: 10, low: 3, info: 0 }
-  const riskScore = Math.min(100, findings.reduce((sum, item) => sum + weights[item.severity], 0))
+  const packedFiles = files.filter(file => packed(manifest, file.display)).sort((a, b) => a.display.localeCompare(b.display))
+  const fingerprint = createHash('sha256')
+  for (const file of packedFiles) {
+    fingerprint.update(file.display).update('\0').update(await readFile(file.absolute)).update('\0')
+  }
+  const dependencies = []
+  for (const section of ['dependencies', 'optionalDependencies', 'peerDependencies']) {
+    for (const [name, range] of Object.entries(manifest[section] ?? {})) dependencies.push({ name, range, section })
+  }
+  let riskScore = Math.min(100, findings.reduce((sum, item) => sum + weights[item.severity], 0))
+  const base = {
+    pluginPath: root, package: manifest.name ?? null, version: manifest.version ?? null, license: manifest.license ?? null,
+    fingerprint: `sha256:${fingerprint.digest('hex')}`, sbom: { format: 'dsh-toolbox-sbom/v1', dependencies },
+    findings, scannedFiles: files.length, packedFiles: packedFiles.length, skippedSymlinks: symlinks.length, riskScore,
+  }
+  findings.push(...policyFindings(base, options.policy))
+  riskScore = Math.min(100, findings.reduce((sum, item) => sum + weights[item.severity], 0))
   const summary = Object.fromEntries(['high', 'medium', 'low', 'info'].map(severity => [severity, findings.filter(item => item.severity === severity).length]))
   const verdict = summary.high ? 'review-required' : summary.medium ? 'caution' : 'no-blocking-findings'
   const result = {
-    pluginPath: root, package: manifest.name ?? null, version: manifest.version ?? null,
-    verdict, riskScore, summary, scannedFiles: files.length, skippedSymlinks: symlinks.length,
+    ...base, riskScore, verdict, summary,
     findings, limitations: ['Static heuristics can miss obfuscated or transitive behavior.', 'Dependencies were not downloaded or executed.', 'This is not a sandbox or a security guarantee.'],
   }
   return { ...result, markdown: formatPreflightMarkdown(result) }
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character])
+}
+
+export function formatPreflightHtml(result) {
+  const rows = result.findings.map(item => `<tr><td>${escapeHtml(item.severity)}</td><td>${escapeHtml(item.code)}</td><td>${escapeHtml(item.path ?? '')}</td><td>${escapeHtml(item.message)}</td></tr>`).join('')
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Plugin Preflight — ${escapeHtml(result.package ?? 'unknown')}</title><style>body{font:16px/1.5 system-ui;max-width:1000px;margin:auto;padding:40px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccc;padding:8px;text-align:left}code{overflow-wrap:anywhere}</style></head><body><h1>Plugin Preflight: ${escapeHtml(result.package ?? 'unknown')}</h1><p><strong>${escapeHtml(result.verdict)}</strong> · risk ${result.riskScore}/100</p><p>Fingerprint: <code>${result.fingerprint}</code></p><table><thead><tr><th>Severity</th><th>Code</th><th>Path</th><th>Finding</th></tr></thead><tbody>${rows}</tbody></table><h2>SBOM</h2><pre>${escapeHtml(JSON.stringify(result.sbom, null, 2))}</pre></body></html>`
 }
 
 export function formatPreflightMarkdown(result) {

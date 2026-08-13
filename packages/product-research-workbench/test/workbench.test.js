@@ -89,3 +89,40 @@ test('escapes imported HTML-like text in generated HTML reports', async () => {
     assert.match(html, /&lt;img src=x onerror=alert\(1\)&gt;/)
   })
 })
+
+test('adds human evidence, exports/restores a project, and enforces destructive confirmations', async () => {
+  await withWorkbench(async (workbench, dataDir) => {
+    const project = workbench.create({ name: 'Lifecycle study' })
+    const source = await workbench.addSource({ projectId: project.id, kind: 'text', text: 'Neutral interview transcript without heuristic trigger words.' })
+    const card = workbench.addEvidence({ projectId: project.id, sourceId: source.id, category: 'workflow', quote: 'I spend two hours reconciling these notes.', intensity: 5, tags: ['human-reviewed'] })
+    assert.equal(card.confidence, 1)
+    workbench.analyze({ projectId: project.id })
+    await assert.rejects(workbench.deleteProject({ projectId: project.id, confirmProjectName: 'wrong' }), /exactly match/)
+    assert.throws(() => workbench.deleteSource({ projectId: project.id, sourceId: source.id, confirmSourceId: 'wrong' }), /exactly match/)
+
+    const backup = await workbench.exportProject({ projectId: project.id, includeSourceContent: true })
+    assert.match(backup.path, new RegExp(`^${dataDir}`))
+    const document = JSON.parse(await readFile(backup.path, 'utf8'))
+    const restored = workbench.importProject({ document, name: 'Lifecycle restored' })
+    assert.equal(restored.sourceCount, 1)
+    assert.equal(restored.evidenceCount, 1)
+
+    const deletedSource = workbench.deleteSource({ projectId: project.id, sourceId: source.id, confirmSourceId: source.id })
+    assert.equal(deletedSource.analysisCleared, true)
+    const deleted = await workbench.deleteProject({ projectId: project.id, confirmProjectName: 'Lifecycle study' })
+    assert.equal(deleted.deleted.name, 'Lifecycle study')
+    assert.equal(workbench.list().projects.some(item => item.id === project.id), false)
+  })
+})
+
+test('rejects tampered exports without leaving a partial project', async () => {
+  await withWorkbench(async workbench => {
+    const project = workbench.create({ name: 'Export integrity' })
+    await workbench.addSource({ projectId: project.id, kind: 'text', text: 'The manual export workflow is difficult.' })
+    const backup = await workbench.exportProject({ projectId: project.id, includeSourceContent: true })
+    const document = JSON.parse(await readFile(backup.path, 'utf8'))
+    document.sources[0].content = 'tampered content'
+    assert.throws(() => workbench.importProject({ document }), /checksum mismatch/)
+    assert.equal(workbench.list().projects.length, 1)
+  })
+})

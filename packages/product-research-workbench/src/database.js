@@ -194,6 +194,36 @@ export class ResearchDatabase {
       .all(projectId).map(row => this.getSource(row.id, includeContent))
   }
 
+  deleteSource(projectId, sourceId) {
+    this.requireProject(projectId)
+    const source = this.getSource(sourceId, false)
+    if (!source || source.projectId !== projectId) throw new Error(`Unknown source in project: ${sourceId}`)
+    this.db.exec('BEGIN IMMEDIATE')
+    try {
+      this.db.prepare('DELETE FROM opportunities WHERE project_id = ?').run(projectId)
+      this.db.prepare('DELETE FROM clusters WHERE project_id = ?').run(projectId)
+      this.db.prepare('DELETE FROM sources WHERE id = ? AND project_id = ?').run(sourceId, projectId)
+      this.touch(projectId, 'collecting')
+      this.db.exec('COMMIT')
+      return source
+    } catch (error) { this.db.exec('ROLLBACK'); throw error }
+  }
+
+  addEvidence(projectId, card) {
+    this.requireProject(projectId)
+    const source = this.getSource(card.sourceId, false)
+    if (!source || source.projectId !== projectId) throw new Error(`Unknown source in project: ${card.sourceId}`)
+    const id = randomUUID(), now = new Date().toISOString()
+    this.db.prepare(`INSERT INTO evidence_cards
+      (id, project_id, source_id, category, quote, summary, intensity, confidence, tags_json, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      .run(id, projectId, card.sourceId, card.category, card.quote, card.summary, card.intensity, card.confidence, JSON.stringify(card.tags ?? []), now)
+    this.db.prepare('DELETE FROM opportunities WHERE project_id = ?').run(projectId)
+    this.db.prepare('DELETE FROM clusters WHERE project_id = ?').run(projectId)
+    this.touch(projectId, 'extracted')
+    return this.listEvidence(projectId).find(item => item.id === id)
+  }
+
   replaceEvidence(projectId, cards) {
     this.requireProject(projectId)
     this.db.exec('BEGIN IMMEDIATE')
@@ -331,6 +361,12 @@ export class ResearchDatabase {
       opportunities: this.listOpportunities(projectId),
       reports: this.listReports(projectId),
     }
+  }
+
+  deleteProject(projectId) {
+    const project = this.requireProject(projectId)
+    this.db.prepare('DELETE FROM projects WHERE id = ?').run(projectId)
+    return project
   }
 
   touch(projectId, status) {

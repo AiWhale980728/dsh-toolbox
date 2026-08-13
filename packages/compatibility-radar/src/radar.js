@@ -1,6 +1,6 @@
 import { DatabaseSync } from 'node:sqlite'
 import { chmodSync, mkdirSync } from 'node:fs'
-import { readFile, realpath } from 'node:fs/promises'
+import { chmod, mkdir, readFile, realpath, readdir, writeFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { randomUUID } from 'node:crypto'
@@ -24,7 +24,7 @@ function checkRange(actual, range) {
   if (!range) return { status: 'unknown', actual, range: null, reason: 'Plugin does not declare this compatibility range.' }
   const match = satisfiesRange(actual, range)
   return match === null
-    ? { status: 'unknown', actual, range, reason: 'Range syntax is outside the Alpha parser.' }
+    ? { status: 'unknown', actual, range, reason: 'Range syntax is outside the built-in parser.' }
     : { status: match ? 'compatible' : 'incompatible', actual, range }
 }
 
@@ -45,6 +45,58 @@ export class CompatibilityRadar {
 
   close() { this.db.close() }
 
+  async discover({ roots, maxDepth = 4, maxDirectories = 5_000 }) {
+    if (!Array.isArray(roots) || roots.length === 0) throw new Error('roots needs at least one local directory')
+    maxDepth = Math.trunc(maxDepth); maxDirectories = Math.trunc(maxDirectories)
+    if (maxDepth < 0 || maxDepth > 12) throw new Error('maxDepth must be between 0 and 12')
+    if (maxDirectories < 1 || maxDirectories > 50_000) throw new Error('maxDirectories must be between 1 and 50000')
+    const plugins = [], errors = [], visited = new Set(), queue = [], resolvedRoots = []
+    for (const input of roots) {
+      try {
+        const path = await realpath(resolve(String(input)))
+        resolvedRoots.push(path); queue.push({ path, depth: 0 })
+      } catch (error) { errors.push({ path: resolve(String(input)), error: error.message }) }
+    }
+    while (queue.length) {
+      const item = queue.shift()
+      if (visited.has(item.path)) continue
+      visited.add(item.path)
+      if (visited.size > maxDirectories) throw new Error(`Discovery exceeded ${maxDirectories} directories`)
+      try {
+        const manifest = JSON.parse(await readFile(join(item.path, 'package.json'), 'utf8'))
+        if (manifest.dsh?.bundle?.patch) plugins.push({ pluginPath: item.path, package: manifest.name ?? null, version: manifest.version ?? null, patch: manifest.dsh.bundle.patch })
+      } catch {}
+      if (item.depth >= maxDepth) continue
+      let entries
+      try { entries = await readdir(item.path, { withFileTypes: true }) } catch (error) { errors.push({ path: item.path, error: error.message }); continue }
+      for (const entry of entries) {
+        if (!entry.isDirectory() || entry.isSymbolicLink() || ['.git', 'node_modules', 'coverage', 'dist'].includes(entry.name)) continue
+        queue.push({ path: join(item.path, entry.name), depth: item.depth + 1 })
+      }
+    }
+    plugins.sort((a, b) => a.package?.localeCompare(b.package ?? '') || a.pluginPath.localeCompare(b.pluginPath))
+    return { roots: [...new Set(resolvedRoots)], plugins, errors, scannedDirectories: visited.size }
+  }
+
+  async inferTarget({ manifestPath }) {
+    const path = resolve(required(manifestPath, 'manifestPath'))
+    let manifest
+    try { manifest = JSON.parse(await readFile(path, 'utf8')) } catch (error) { throw new Error(`Cannot read target manifest: ${error.message}`) }
+    const sources = [manifest.dependencies ?? {}, manifest.devDependencies ?? {}, manifest.peerDependencies ?? {}]
+    const pick = name => sources.map(group => group[name]).find(Boolean)
+    const exact = (range, name) => {
+      const match = /(?:^|[^\d])(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)/.exec(String(range ?? ''))
+      if (!match) throw new Error(`Cannot infer an exact ${name} version from ${range ?? '(missing)'}`)
+      return match[1]
+    }
+    return {
+      manifestPath: path,
+      dshToolsVersion: exact(pick('@deepseek-ai/dsh-tools'), '@deepseek-ai/dsh-tools'),
+      cordisVersion: exact(pick('@deepseek-ai/cordis'), '@deepseek-ai/cordis'),
+      nodeVersion: exact(manifest.engines?.node ?? process.versions.node, 'Node'),
+    }
+  }
+
   async check(args) {
     const runtime = target(args)
     if (!Array.isArray(args.pluginPaths) || args.pluginPaths.length === 0) throw new Error('pluginPaths needs at least one local plugin directory')
@@ -62,8 +114,8 @@ export class CompatibilityRadar {
         continue
       }
       const checks = {
-        dshTools: checkRange(runtime.dshTools, manifest.peerDependencies?.['@deepseek-ai/dsh-tools']),
-        cordis: checkRange(runtime.cordis, manifest.peerDependencies?.['@deepseek-ai/cordis']),
+        dshTools: checkRange(runtime.dshTools, manifest.peerDependencies?.['@deepseek-ai/dsh-tools'] ?? manifest.dependencies?.['@deepseek-ai/dsh-tools']),
+        cordis: checkRange(runtime.cordis, manifest.peerDependencies?.['@deepseek-ai/cordis'] ?? manifest.dependencies?.['@deepseek-ai/cordis']),
         node: checkRange(runtime.node, manifest.engines?.node),
       }
       const values = Object.values(checks).map(item => item.status)
@@ -120,6 +172,40 @@ export class CompatibilityRadar {
     }
     const riskOrder = { error: 3, incompatible: 3, unknown: 2, compatible: 1 }
     const regressions = changes.filter(change => change.kind === 'added' ? riskOrder[change.after] >= 2 : change.kind === 'changed' && riskOrder[change.after] > riskOrder[change.before])
-    return { before: { id: before.id, label: before.label, target: before.target }, after: { id: after.id, label: after.label, target: after.target }, changes, regressions, upgradeRisk: regressions.length ? 'review-required' : changes.length ? 'changed' : 'no-change' }
+    const recommendations = regressions.map(change => ({
+      package: change.package,
+      action: change.after === 'incompatible' ? 'Keep the prior runtime or update the plugin peer range only after a real install/test.' : 'Review missing or unsupported compatibility declarations.',
+    }))
+    return { before: { id: before.id, label: before.label, target: before.target }, after: { id: after.id, label: after.label, target: after.target }, changes, regressions, recommendations, upgradeRisk: regressions.length ? 'review-required' : changes.length ? 'changed' : 'no-change' }
+  }
+
+  async report({ beforeId, afterId, format = 'both' } = {}) {
+    if (!['markdown', 'html', 'both'].includes(format)) throw new Error('format must be markdown, html, or both')
+    const diff = this.diff({ beforeId, afterId })
+    const markdown = this.markdown(diff)
+    const directory = join(this.dataDir, 'reports')
+    await mkdir(directory, { recursive: true, mode: 0o700 })
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-')
+    const reports = []
+    if (format !== 'html') {
+      const path = join(directory, `compatibility_${stamp}.md`); await writeFile(path, markdown, { mode: 0o600 }); await chmod(path, 0o600); reports.push({ format: 'markdown', path })
+    }
+    if (format !== 'markdown') {
+      const path = join(directory, `compatibility_${stamp}.html`); await writeFile(path, this.html(diff), { mode: 0o600 }); await chmod(path, 0o600); reports.push({ format: 'html', path })
+    }
+    return { upgradeRisk: diff.upgradeRisk, changes: diff.changes.length, regressions: diff.regressions.length, reports }
+  }
+
+  markdown(diff) {
+    const lines = ['# DSH Compatibility Radar', '', `- Before: **${diff.before.label}**`, `- After: **${diff.after.label}**`, `- Upgrade risk: **${diff.upgradeRisk}**`, '', '## Changes', '']
+    if (!diff.changes.length) lines.push('No compatibility changes detected.')
+    for (const item of diff.changes) lines.push(`- **${item.package ?? item.pluginPath}**: ${item.kind}${item.before ? ` ${item.before}` : ''}${item.after ? ` → ${item.after}` : ''}`)
+    lines.push('', '## Recommendations', '', ...(diff.recommendations.length ? diff.recommendations.map(item => `- **${item.package}**: ${item.action}`) : ['No upgrade regression recommendations.']), '')
+    return lines.join('\n')
+  }
+
+  html(diff) {
+    const escape = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character])
+    return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>DSH Compatibility Radar</title><style>body{font:16px/1.5 system-ui;max-width:960px;margin:auto;padding:40px}.risk{font-size:1.4rem}li{margin:.6em 0}</style></head><body><h1>DSH Compatibility Radar</h1><p class="risk">Upgrade risk: <strong>${escape(diff.upgradeRisk)}</strong></p><p>${escape(diff.before.label)} → ${escape(diff.after.label)}</p><h2>Changes</h2><ul>${diff.changes.map(item => `<li><strong>${escape(item.package ?? item.pluginPath)}</strong>: ${escape(item.kind)} ${escape(item.before ?? '')} → ${escape(item.after ?? '')}</li>`).join('')}</ul><h2>Recommendations</h2><ul>${diff.recommendations.map(item => `<li><strong>${escape(item.package)}</strong>: ${escape(item.action)}</li>`).join('')}</ul></body></html>`
   }
 }

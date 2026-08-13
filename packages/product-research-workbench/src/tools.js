@@ -69,6 +69,36 @@ export function registerResearchTools(ctx, workbench, defineTool = value => valu
       },
       execute: args => workbench.report(args),
     },
+    {
+      name: 'research_evidence_add',
+      description: 'Add one human-reviewed evidence card to a source and clear stale derived analysis.',
+      parameters: { projectId: { type: 'string', required: true }, sourceId: { type: 'string', required: true }, category: { type: 'string', required: true }, quote: { type: 'string', required: true }, summary: { type: 'string' }, intensity: { type: 'number' }, confidence: { type: 'number' }, tags: { type: 'array', items: { type: 'string' } } },
+      execute: args => workbench.addEvidence(args),
+    },
+    {
+      name: 'research_source_delete',
+      description: 'Delete one source and its evidence after exact source-id confirmation; clears stale clusters and opportunities.',
+      parameters: { projectId: { type: 'string', required: true }, sourceId: { type: 'string', required: true }, confirmSourceId: { type: 'string', required: true } },
+      execute: args => workbench.deleteSource(args),
+    },
+    {
+      name: 'research_export',
+      description: 'Write a private JSON project export. Raw source bodies are excluded unless includeSourceContent is explicitly true.',
+      parameters: { projectId: { type: 'string', required: true }, includeSourceContent: { type: 'boolean' } },
+      execute: args => workbench.exportProject(args),
+    },
+    {
+      name: 'research_import',
+      description: 'Restore a new project from a trusted Product Research Workbench export document that includes raw source content.',
+      parameters: { document: { type: 'object', required: true, additionalProperties: true }, name: { type: 'string' } },
+      execute: args => workbench.importProject(args),
+    },
+    {
+      name: 'research_project_delete',
+      description: 'Permanently delete one local research project and its generated report directory. Requires exact project-name confirmation.',
+      parameters: { projectId: { type: 'string', required: true }, confirmProjectName: { type: 'string', required: true } },
+      execute: args => workbench.deleteProject(args),
+    },
   ]
 
   for (const tool of tools) ctx.tools.register(definition(defineTool, tool))

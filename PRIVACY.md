@@ -1,31 +1,42 @@
 # Privacy
 
-DSH Toolbox is designed for a single user and local-first operation.
+DSH Toolbox is designed for one user and local-first operation. It has no accounts, hosted database, analytics, telemetry, or background uploads.
 
-## Product Research Workbench Alpha
+## Product Research Workbench
 
-- Research projects, source text, evidence cards, analyses, and reports are stored in a local SQLite database.
-- The default data directory is `~/.local/share/dsh-toolbox/product-research-workbench`. Set the plugin's `dataDir` configuration to choose another location.
-- Telemetry is not collected. There are no analytics, accounts, hosted database, or background uploads.
-- URL imports perform a direct unauthenticated `GET`. The plugin does not read or persist browser cookies, authorization headers, or passwords.
-- Loopback, private-network, link-local, multicast, and common cloud-metadata destinations are blocked by default.
-- URL responses and text imports are size-limited. Redirects and request duration are capped.
-- The deterministic Alpha analysis runs locally. If a future model-provider integration is enabled, it must disclose exactly which content leaves the device and require explicit configuration.
-- Generated reports can contain source quotations and URLs. Review them before sharing.
+- Projects, raw source text, evidence, analyses, and report paths are stored in local SQLite under `~/.local/share/dsh-toolbox/product-research-workbench` by default.
+- URL import sends a direct unauthenticated `GET` to the selected public URL. It does not read or persist browser cookies, authorization headers, or passwords.
+- Loopback, private-network, link-local, multicast, documentation, carrier-grade NAT, and common cloud-metadata destinations are blocked by default. Redirects, response size, and request duration are capped.
+- Extraction and analysis run locally. No research content is sent to a model provider by this plugin.
+- `research_export` omits raw source bodies by default. Setting `includeSourceContent=true` produces a restorable JSON backup containing raw text; it should be protected as private research data.
+- `research_project_delete` removes the project's SQLite rows and report directory after exact name confirmation. It intentionally leaves separately created JSON exports so backups are not silently destroyed. `research_source_delete` removes the source/evidence and clears stale derived analysis.
+- Reports and exports may contain quotations, URLs, copyrighted text, and personal information. Review them before sharing.
 
-## Other plugins
+## Context Switchboard
 
-- Context Switchboard stores profiles, resource-pointer labels, context packets, and activation receipts in a local SQLite database. Resource paths are not opened automatically.
-- Plugin Preflight reads only the local directory explicitly provided to it. It does not execute scripts, install dependencies, follow symlinks, or send scan results over the network.
-- Compatibility Radar reads explicitly supplied local `package.json` files and stores version matrices in a local SQLite database. It does not monitor registries in the background or auto-upgrade software.
-- Context packets, scan findings, and compatibility matrices may disclose local paths or project names if shared. Sanitize them before posting publicly.
+- Profiles, routing rules, resource-pointer labels, instructions, and activation receipts are stored in local SQLite under `~/.local/share/dsh-toolbox/context-switchboard` by default.
+- An activated packet is contributed to DSH through the native runtime-context registry. DSH may materialize that packet as a durable user-role context snapshot in the selected session history.
+- Profile exports include instructions and resource-pointer strings. Resource pointers are labels only; this plugin never opens them automatically.
+- Rollback preserves receipts for auditability. Removing the data directory is required to erase that local history.
+
+## Plugin Preflight
+
+- Preflight reads only the explicitly requested directory inside the session working directory or operator-configured `allowedRoots`.
+- It does not execute scripts, install dependencies, follow symlinks, contact registries, or upload scan results.
+- Reports default to `~/.local/share/dsh-toolbox/plugin-preflight/reports` with private file permissions. They may reveal package names, local paths, capabilities, and dependency versions.
+
+## Compatibility Radar
+
+- Radar reads local bundle `package.json` files under permitted roots and stores snapshots under `~/.local/share/dsh-toolbox/compatibility-radar` by default.
+- Discovery skips symlinks, `node_modules`, `.git`, coverage, and build output. It does not query package registries in the background or install/upgrade software.
+- Reports may reveal local paths, package names, and versions.
 
 ## Files that must not be committed
 
-Never commit databases, WAL/SHM files, `.env` files, credentials, cookies, sessions, private reports, or raw exports. Repository ignore rules cover common names, but users remain responsible for reviewing staged changes.
+Never commit SQLite databases or WAL/SHM files, `.env` files, credentials, cookies, sessions, private reports, or research exports. Repository ignore rules cover common names, but users remain responsible for inspecting staged changes.
 
 ## Deletion and retention
 
-Deleting a plugin's configured data directory removes its locally stored data after DSH has stopped using the database. Secure deletion depends on the filesystem and backups. Project-level deletion/export tools are planned; until then, back up or remove databases deliberately.
+Stopping DSH and deleting a plugin's configured data directory removes its local database and reports. Secure deletion depends on the filesystem, snapshots, backups, synchronization software, and retained DSH session history. JSON exports and DSH runtime-context session snapshots are separate copies and must be managed separately.
 
-Privacy or data-handling concerns may be reported using the private channel described in [SECURITY.md](SECURITY.md).
+Report data-handling concerns through the private channel described in [SECURITY.md](SECURITY.md).

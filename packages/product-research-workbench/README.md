@@ -1,11 +1,13 @@
 # Product Research Workbench
 
-An experimental local-first DeepSeek Harness plugin that turns pasted text and public web pages into traceable evidence cards, pain clusters, opportunity scores, and Markdown/HTML reports.
+A local-first MVP that turns pasted text and public web pages into traceable evidence cards, pain clusters, opportunity scores, and Markdown/HTML reports, with human evidence and project backup/restore.
 
 ## Install
 
 ```sh
-dsh plugin --profile web add ./packages/product-research-workbench
+mkdir -p dist
+npm pack --workspace @dsh-toolbox/product-research-workbench --pack-destination dist
+dsh plugin --profile web add ./dist/dsh-toolbox-product-research-workbench-0.2.0.tgz
 ```
 
 Restart or reload the selected profile as required by your DSH release candidate.
@@ -18,6 +20,9 @@ Restart or reload the selected profile as required by your DSH release candidate
 - `research_analyze` — group pain evidence and score opportunities.
 - `research_report` — write Markdown, HTML, or both under the local data directory.
 - `research_list` / `research_get` — inspect local projects and their provenance.
+- `research_evidence_add` — add a human-reviewed evidence card.
+- `research_export` / `research_import` — back up and restore full projects; raw source bodies require explicit opt-in.
+- `research_source_delete` / `research_project_delete` — confirmed deletion with stale-analysis cleanup.
 
 Suggested sequence:
 
@@ -40,12 +45,12 @@ config:
 
 `dataDir` defaults to `~/.local/share/dsh-toolbox/product-research-workbench`. URL requests are unauthenticated. Private, loopback, link-local, multicast, and metadata-network destinations are rejected by default. The response is capped before conversion to plain text.
 
-## Alpha limits
+## MVP limits
 
 - Extraction and clustering are transparent deterministic heuristics, not an LLM call.
 - English and Chinese pain language is supported, but taxonomy quality depends on source phrasing.
 - HTML extraction is intentionally conservative and is not a full browser renderer.
 - Authenticated social media crawling, CAPTCHA bypass, cloud sync, multi-user access, and auto-publishing are out of scope.
-- Install compatibility still needs validation against the exact DSH RC you use.
+- The tested target is DSH `0.1.0-rc.6`; repeat an isolated install check before changing RCs.
 
 The SQLite database and generated reports may contain private or copyrighted material. They are ignored by the repository defaults; review reports before sharing. See the repository privacy and security policies.

@@ -1,14 +1,15 @@
 {
   "name": "@dsh-toolbox/plugin-preflight",
-  "version": "0.1.0-alpha.0",
-  "description": "Read-only DeepSeek Harness profile-bundle packaging, license, lifecycle-script, and capability-risk preflight.",
+  "version": "0.2.0",
+  "description": "Read-only DeepSeek Harness bundle validation, capability policy, SBOM, fingerprint, and audit reporting.",
   "type": "module",
   "main": "./index.js",
   "exports": { ".": "./index.js", "./cordis.patch.yml": "./cordis.patch.yml", "./package.json": "./package.json" },
   "files": ["index.js", "src", "cordis.patch.yml", "README.md", "LICENSE"],
   "license": "MIT",
   "engines": { "node": "^22.19.0 || >=24.0.0" },
-  "peerDependencies": { "@deepseek-ai/cordis": "^4.0.1", "@deepseek-ai/dsh-tools": ">=0.1.0-rc.5 <0.2.0" },
+  "dependencies": { "@deepseek-ai/dsh-tools": "0.1.0-rc.6" },
+  "peerDependencies": { "@deepseek-ai/cordis": "^4.0.1" },
   "dsh": { "bundle": { "patch": "./cordis.patch.yml" } },
   "repository": { "type": "git", "url": "git+https://github.com/AiWhale980728/dsh-toolbox.git", "directory": "packages/plugin-preflight" },
   "keywords": ["deepseek", "deepseek-harness", "dsh-plugin", "security", "preflight"]
