@@ -1,0 +1,3 @@
+- insert:
+    - id: plugin-preflight
+      name: '@dsh-toolbox/plugin-preflight'

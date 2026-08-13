@@ -1,0 +1,32 @@
+name: Bug report
+description: Report a reproducible defect without including private data.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Do not paste secrets, private source text, databases, or sensitive reports.
+  - type: input
+    id: plugin
+    attributes:
+      label: Plugin and version
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: DSH RC, Node version, and OS
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps with sanitized input
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual result
+    validations:
+      required: true

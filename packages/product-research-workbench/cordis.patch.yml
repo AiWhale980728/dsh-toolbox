@@ -1,0 +1,4 @@
+- insert:
+    - id: product-research-workbench
+      name: '@dsh-toolbox/product-research-workbench'
+      config: {}

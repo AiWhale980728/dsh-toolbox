@@ -1,0 +1,51 @@
+# Product Research Workbench
+
+An experimental local-first DeepSeek Harness plugin that turns pasted text and public web pages into traceable evidence cards, pain clusters, opportunity scores, and Markdown/HTML reports.
+
+## Install
+
+```sh
+dsh plugin --profile web add ./packages/product-research-workbench
+```
+
+Restart or reload the selected profile as required by your DSH release candidate.
+
+## Tools
+
+- `research_create` — create a local research project.
+- `research_add_source` — add either pasted text or one public `http(s)` URL.
+- `research_extract` — derive evidence cards locally using deterministic rules.
+- `research_analyze` — group pain evidence and score opportunities.
+- `research_report` — write Markdown, HTML, or both under the local data directory.
+- `research_list` / `research_get` — inspect local projects and their provenance.
+
+Suggested sequence:
+
+```text
+research_create → research_add_source → research_extract → research_analyze → research_report
+```
+
+## Configuration
+
+The profile patch uses safe defaults. Add a `config` block to `cordis.patch.yml` if needed:
+
+```yaml
+config:
+  dataDir: /absolute/local/path
+  timeoutMs: 15000
+  maxSourceBytes: 1048576
+  maxRedirects: 3
+  allowPrivateNetwork: false
+```
+
+`dataDir` defaults to `~/.local/share/dsh-toolbox/product-research-workbench`. URL requests are unauthenticated. Private, loopback, link-local, multicast, and metadata-network destinations are rejected by default. The response is capped before conversion to plain text.
+
+## Alpha limits
+
+- Extraction and clustering are transparent deterministic heuristics, not an LLM call.
+- English and Chinese pain language is supported, but taxonomy quality depends on source phrasing.
+- HTML extraction is intentionally conservative and is not a full browser renderer.
+- Authenticated social media crawling, CAPTCHA bypass, cloud sync, multi-user access, and auto-publishing are out of scope.
+- Install compatibility still needs validation against the exact DSH RC you use.
+
+The SQLite database and generated reports may contain private or copyrighted material. They are ignored by the repository defaults; review reports before sharing. See the repository privacy and security policies.

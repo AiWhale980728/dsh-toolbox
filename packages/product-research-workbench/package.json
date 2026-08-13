@@ -1,0 +1,49 @@
+{
+  "name": "@dsh-toolbox/product-research-workbench",
+  "version": "0.1.0-alpha.0",
+  "description": "Local-first URL/text product research, evidence clustering, opportunity scoring, and Markdown/HTML reports for DeepSeek Harness.",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "src",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "check": "npm test && npm pack --dry-run"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-tools": ">=0.1.0-rc.5 <0.2.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AiWhale980728/dsh-toolbox.git",
+    "directory": "packages/product-research-workbench"
+  },
+  "keywords": [
+    "deepseek",
+    "deepseek-harness",
+    "dsh-plugin",
+    "product-research",
+    "local-first",
+    "sqlite"
+  ]
+}

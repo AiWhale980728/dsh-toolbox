@@ -1,0 +1,24 @@
+node_modules/
+*.tgz
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# Local-first runtime data: never publish these.
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+.dsh-toolbox/
+data/
+reports/
+sessions/
+cookies/
+
+# Tooling output
+coverage/
+dist/
+.turbo/

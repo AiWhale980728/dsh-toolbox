@@ -1,0 +1,24 @@
+{
+  "name": "dsh-toolbox",
+  "version": "0.1.0-alpha.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "description": "Local-first DeepSeek Harness plugins for research, context routing, preflight, and compatibility monitoring.",
+  "type": "module",
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "scripts": {
+    "test": "node --test packages/*/test/*.test.js",
+    "check": "node scripts/validate-workspace.js && npm test",
+    "pack:check": "npm pack --dry-run --workspace @dsh-toolbox/product-research-workbench && npm pack --dry-run --workspace @dsh-toolbox/context-switchboard && npm pack --dry-run --workspace @dsh-toolbox/plugin-preflight && npm pack --dry-run --workspace @dsh-toolbox/compatibility-radar"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AiWhale980728/dsh-toolbox.git"
+  }
+}
