@@ -1,7 +1,7 @@
 {
   "name": "@dsh-toolbox/context-switchboard",
-  "version": "0.0.1-alpha.0",
-  "description": "Experimental DeepSeek Harness context routing plugin scaffold.",
+  "version": "0.1.0-alpha.0",
+  "description": "Local-first named context profiles, deterministic routing, activation receipts, and rollback for DeepSeek Harness.",
   "type": "module",
   "main": "./index.js",
   "exports": { ".": "./index.js", "./cordis.patch.yml": "./cordis.patch.yml", "./package.json": "./package.json" },
@@ -11,5 +11,5 @@
   "peerDependencies": { "@deepseek-ai/cordis": "^4.0.1", "@deepseek-ai/dsh-tools": ">=0.1.0-rc.5 <0.2.0" },
   "dsh": { "bundle": { "patch": "./cordis.patch.yml" } },
   "repository": { "type": "git", "url": "git+https://github.com/AiWhale980728/dsh-toolbox.git", "directory": "packages/context-switchboard" },
-  "keywords": ["deepseek", "deepseek-harness", "dsh-plugin", "context-routing"]
+  "keywords": ["deepseek", "deepseek-harness", "dsh-plugin", "context-routing", "local-first", "sqlite"]
 }

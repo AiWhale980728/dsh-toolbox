@@ -1,7 +1,7 @@
 {
   "name": "@dsh-toolbox/compatibility-radar",
-  "version": "0.0.1-alpha.0",
-  "description": "Experimental DeepSeek Harness and plugin compatibility monitoring scaffold.",
+  "version": "0.1.0-alpha.0",
+  "description": "Local-first DeepSeek Harness plugin compatibility matrices, SQLite snapshots, and upgrade-risk diffs.",
   "type": "module",
   "main": "./index.js",
   "exports": { ".": "./index.js", "./cordis.patch.yml": "./cordis.patch.yml", "./package.json": "./package.json" },

@@ -15,6 +15,8 @@ Do not open a public issue containing exploit details, secrets, private research
 - Imported content is untrusted data. It must never be interpreted as executable instructions by the storage and reporting layers.
 - HTML reports escape imported content and do not load remote scripts.
 - Database paths and exported report paths must remain inside the configured plugin data directory.
+- Plugin Preflight is heuristic static analysis, not a sandbox or security guarantee; transitive, obfuscated, native, and runtime behavior may be missed.
+- Compatibility results are advisory. Pre-release semver and undeclared peer ranges require a real installation test.
 - Dependency additions require license and maintenance review.
 
 ## Release checklist

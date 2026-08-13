@@ -1,9 +1,11 @@
 import { defineTool } from '@deepseek-ai/dsh-tools'
-import { registerStatusTool } from './src/status.js'
+import { registerPreflightTools } from './src/tools.js'
 
 export const name = 'plugin-preflight'
 export const inject = ['tools']
 
-export function apply(ctx) {
-  registerStatusTool(ctx, defineTool)
+export function apply(ctx, config = {}) {
+  registerPreflightTools(ctx, defineTool, config)
 }
+
+export { scanPlugin, formatPreflightMarkdown } from './src/preflight.js'

@@ -9,9 +9,9 @@ Local-first, independently installable plugins for [DeepSeek Harness](https://gi
 | Plugin | Status | Purpose |
 | --- | --- | --- |
 | [`@dsh-toolbox/product-research-workbench`](packages/product-research-workbench) | Alpha | Turn URL/text evidence into pain clusters, opportunity scores, and Markdown/HTML reports. |
-| [`@dsh-toolbox/context-switchboard`](packages/context-switchboard) | Experimental scaffold | Route tasks into explicit, inspectable local context profiles. |
-| [`@dsh-toolbox/plugin-preflight`](packages/plugin-preflight) | Experimental scaffold | Check a plugin before installation for packaging, permissions, and common security risks. |
-| [`@dsh-toolbox/compatibility-radar`](packages/compatibility-radar) | Experimental scaffold | Track DSH/plugin version compatibility and likely breaking changes. |
+| [`@dsh-toolbox/context-switchboard`](packages/context-switchboard) | Alpha | Route tasks into explicit profiles with activation receipts and rollback. |
+| [`@dsh-toolbox/plugin-preflight`](packages/plugin-preflight) | Alpha | Statically check local plugins for packaging, license, lifecycle, and capability risks. |
+| [`@dsh-toolbox/compatibility-radar`](packages/compatibility-radar) | Alpha | Build and diff local DSH/plugin compatibility snapshots. |
 
 Each package is a DSH Profile Bundle and can be installed independently from a local path:
 
@@ -19,7 +19,7 @@ Each package is a DSH Profile Bundle and can be installed independently from a l
 dsh plugin --profile web add ./packages/product-research-workbench
 ```
 
-The Product Research Workbench currently requires Node.js `^22.19.0 || >=24.0.0`; SQLite uses Node's built-in `node:sqlite` module. The package targets `@deepseek-ai/dsh-tools >=0.1.0-rc.5 <0.2.0` and Cordis 4.x. A real `dsh` executable is not part of this repository, so release checks must be repeated against the intended DSH RC.
+The plugins require Node.js `^22.19.0 || >=24.0.0`; local storage uses Node's built-in `node:sqlite` module. Packages target `@deepseek-ai/dsh-tools >=0.1.0-rc.5 <0.2.0` and Cordis 4.x. A real `dsh` executable is not part of this repository, so release checks must be repeated against the intended DSH RC.
 
 ## Local development
 
@@ -31,14 +31,14 @@ pnpm pack:check
 
 The Alpha intentionally has no production npm dependencies. See [PRIVACY.md](PRIVACY.md), [SECURITY.md](SECURITY.md), and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) before enabling new integrations.
 
-## Roadmap
+## Delivery status
 
-1. Product Research Workbench usable Alpha
-2. Context Switchboard
-3. Plugin Preflight
-4. Compatibility Radar
+1. Product Research Workbench Alpha — implemented
+2. Context Switchboard Alpha — implemented
+3. Plugin Preflight Alpha — implemented
+4. Compatibility Radar Alpha — implemented
 
-This ordering is deliberate: the research workflow establishes the shared local storage, receipts, export, and safety patterns used by the other plugins.
+Next milestone: install smoke tests against a pinned DSH release candidate, followed by usability feedback and hardening. None of the packages has been published to npm or tagged as a GitHub Release yet.
 
 ## License
 
