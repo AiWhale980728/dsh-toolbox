@@ -5,7 +5,7 @@
   "workspaces": [
     "packages/*"
   ],
-  "description": "Local-first DeepSeek Harness plugins for research, context routing, preflight, and compatibility monitoring.",
+  "description": "Local-first DeepSeek Harness plugins plus a profile and plugin control plane.",
   "type": "module",
   "packageManager": "pnpm@11.19.0",
   "engines": {
@@ -14,7 +14,8 @@
   "scripts": {
     "test": "node --test packages/*/test/*.test.js",
     "check": "node scripts/validate-workspace.js && npm test",
-    "pack:check": "npm pack --dry-run --workspace @dsh-toolbox/product-research-workbench && npm pack --dry-run --workspace @dsh-toolbox/context-switchboard && npm pack --dry-run --workspace @dsh-toolbox/plugin-preflight && npm pack --dry-run --workspace @dsh-toolbox/compatibility-radar"
+    "pack:check": "npm pack --dry-run --workspace @dsh-toolbox/product-research-workbench && npm pack --dry-run --workspace @dsh-toolbox/context-switchboard && npm pack --dry-run --workspace @dsh-toolbox/plugin-preflight && npm pack --dry-run --workspace @dsh-toolbox/compatibility-radar && npm pack --dry-run --workspace @dsh-toolbox/dsh-switchboard",
+    "switchboard": "node packages/dsh-switchboard/bin/dsh-switchboard.js"
   },
   "license": "SEE LICENSE IN LICENSE",
   "repository": {

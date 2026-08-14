@@ -31,12 +31,21 @@ DSH Toolbox is designed for one user and local-first operation. It has no accoun
 - Discovery skips symlinks, `node_modules`, `.git`, coverage, and build output. It does not query package registries in the background or install/upgrade software.
 - Reports may reveal local paths, package names, and versions.
 
+## DSH Switchboard
+
+- Switchboard reads profile manifests and user patch metadata under the selected `$DSH_HOME`. It does not upload profile data or query registries in the background.
+- Transaction receipts, backups, Compatibility Radar data, and reports default to `~/.local/share/dsh-toolbox/dsh-switchboard` with user-only permissions where supported.
+- Backups can contain a complete profile `package.json` and `cordis.patch.yml`. Treat them as private configuration even though Switchboard reports do not reproduce patch content.
+- `inspect`, Preflight, audit, and report output can reveal package names, versions, profile structure, fingerprints, diagnostics, and absolute local paths. Sanitize output before sharing it or attaching it to an issue.
+- The runtime safety gate starts `dsh --profile <name> --dump-config` without a shell. The composed config is counted but not stored in the receipt; DSH diagnostics may still include local paths or configuration details.
+- Switchboard does not remove transaction history or backups automatically. Review and delete its data directory according to your retention needs after DSH is stopped.
+
 ## Files that must not be committed
 
 Never commit SQLite databases or WAL/SHM files, `.env` files, credentials, cookies, sessions, private reports, or research exports. Repository ignore rules cover common names, but users remain responsible for inspecting staged changes.
 
 ## Deletion and retention
 
-Stopping DSH and deleting a plugin's configured data directory removes its local database and reports. Secure deletion depends on the filesystem, snapshots, backups, synchronization software, and retained DSH session history. JSON exports and DSH runtime-context session snapshots are separate copies and must be managed separately.
+Stopping DSH and deleting a plugin's configured data directory removes its local database and reports. Stop Switchboard operations before deleting its receipt/backup directory. Secure deletion depends on the filesystem, snapshots, backups, synchronization software, and retained DSH session history. JSON exports, Switchboard backups, and DSH runtime-context session snapshots are separate copies and must be managed separately.
 
 Report data-handling concerns through the private channel described in [SECURITY.md](SECURITY.md).

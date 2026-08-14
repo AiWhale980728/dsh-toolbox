@@ -1,19 +1,22 @@
 # DSH Toolbox
 
-Four local-first, independently installable plugins for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness): product research, context routing, plugin preflight, and compatibility monitoring.
+Four local-first, independently installable plugins for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness), plus an external profile and plugin control plane inspired by the useful operating patterns in [CC Switch](https://github.com/farion1231/cc-switch).
+
+![DSH Toolbox product overview: Product Research, Context Routing, Plugin Preflight, Compatibility Radar, and the local DSH Switchboard control plane](docs/assets/dsh-toolbox-overview.png)
 
 > **Experimental MVP · Noncommercial use only.** DeepSeek Harness is in Developer Preview, so APIs and Profile Bundle compatibility may change between release candidates. DSH Toolbox is independent and is not affiliated with or endorsed by DeepSeek.
 
 ## What is included
 
-| Plugin | Daily-use workflow | Tools |
+| Component | Daily-use workflow | Tools |
 | --- | --- | ---: |
 | [`@dsh-toolbox/product-research-workbench`](packages/product-research-workbench) | Import URL/text evidence, curate findings, score opportunities, back up projects, and create Markdown/HTML reports. | 12 |
 | [`@dsh-toolbox/context-switchboard`](packages/context-switchboard) | Route work into bounded profiles, activate native runtime context, inspect receipts, and roll back. | 10 |
 | [`@dsh-toolbox/plugin-preflight`](packages/plugin-preflight) | Review a local bundle's package semantics, capabilities, policy, SBOM, and fingerprint before installation. | 2 |
 | [`@dsh-toolbox/compatibility-radar`](packages/compatibility-radar) | Discover bundles, compare them with a target runtime, save/diff snapshots, and create upgrade reports. | 7 |
+| [`@dsh-toolbox/dsh-switchboard`](packages/dsh-switchboard) | Discover DSH profiles, inspect bundle layers, plan changes, run safety gates, validate, back up, report, and roll back. | CLI/control plane |
 
-All data and reports stay on the local machine by default. There are no accounts, hosted services, analytics, telemetry, background registry checks, or automatic upgrades.
+The first four rows are DSH Profile Bundles. DSH Switchboard deliberately runs outside the active Harness process so it does not rewrite the profile that booted it. All data and reports stay on the local machine by default. There are no accounts, hosted services, analytics, telemetry, background registry checks, or automatic upgrades.
 
 ## Requirements
 
@@ -21,6 +24,8 @@ All data and reports stay on the local machine by default. There are no accounts
 - npm, for packing the local bundles
 - `@deepseek-ai/dsh@0.1.0-rc.6`
 - A local DSH profile you are allowed to modify
+
+Read-only Switchboard inspection works without the DSH CLI on `PATH`. Applying or rolling back a change requires the CLI by default because a successful `dsh --profile <name> --dump-config` is the runtime safety gate.
 
 The tested runtime combination is:
 
@@ -69,6 +74,27 @@ dsh --profile toolbox
 You may install only the tarballs you need. Packing does not execute plugin code and does not require repository dependencies to be installed. Direct checkout-path installation is also possible after `npm install` at the repository root, but tarballs match npm packaging semantics and are the validated portable flow.
 
 Each package pins the small DSH tool-definition runtime needed for reliable out-of-tree installation. There are no install lifecycle scripts.
+
+### Start DSH Switchboard
+
+Switchboard is currently a source-distributed technical preview and is not an npm dependency of any DSH profile. Run it from the checkout:
+
+```sh
+npm run switchboard -- detect
+npm run switchboard -- profiles
+npm run switchboard -- inspect toolbox
+npm run switchboard -- health toolbox
+```
+
+Mutation commands are plan-first and make no change unless `--apply` is present:
+
+```sh
+npm run switchboard -- bundle disable toolbox @dsh-toolbox/context-switchboard
+npm run switchboard -- bundle disable toolbox @dsh-toolbox/context-switchboard --apply
+npm run switchboard -- history
+```
+
+Switchboard keeps SHA-256 state fingerprints, atomic-write backups, and SQLite receipts. It rejects stale plans and refuses rollback over a later user edit. See the [Switchboard README](packages/dsh-switchboard) and [architecture RFC](docs/RFC-DSH-SWITCHBOARD.md).
 
 ## How to use the plugins
 
@@ -143,43 +169,11 @@ Before changing DSH or Cordis versions, save a second snapshot and use `compatib
 | Context Switchboard | `~/.local/share/dsh-toolbox/context-switchboard` |
 | Plugin Preflight | `~/.local/share/dsh-toolbox/plugin-preflight` |
 | Compatibility Radar | `~/.local/share/dsh-toolbox/compatibility-radar` |
+| DSH Switchboard | `~/.local/share/dsh-toolbox/dsh-switchboard` |
 
-The plugins use SQLite and create Markdown plus self-contained HTML reports where applicable. Generated reports load no remote scripts. Runtime databases, reports, exports, sessions, environment files, and cookies are excluded by the repository `.gitignore`, but you should still inspect staged changes before every commit.
+The plugins and control plane use SQLite and create Markdown plus self-contained HTML reports where applicable. Generated reports load no remote scripts. Runtime databases, reports, exports, sessions, environment files, and cookies are excluded by the repository `.gitignore`, but you should still inspect staged changes before every commit.
 
 Research reports and exports may contain source text, quotations, URLs, local paths, project names, copyrighted material, or personal information. Review them before sharing. See [PRIVACY.md](PRIVACY.md) and [SECURITY.md](SECURITY.md) for the complete boundaries.
-
-## Troubleshooting
-
-### `node:sqlite` cannot be found
-
-Upgrade to Node.js 22.19 or later, or Node.js 24 or later. Older Node releases are unsupported.
-
-### Checkout-path installation cannot resolve `@deepseek-ai/dsh-tools`
-
-Use the tarball flow above. If you deliberately install from checkout paths, run `npm install` at the repository root first.
-
-### DSH reports a minimum-release-age or supply-chain policy violation
-
-Do not bypass the policy automatically. The pinned DSH release candidate and its dependencies may be newer than your configured safety window. Wait for the window to pass or review the dependency provenance and policy with the DSH administrator.
-
-### Peer-dependency warnings appear during profile installation
-
-DSH profiles use an installation-anchor layout that can produce peer visibility warnings. Do not add a second Cordis runtime merely to silence them. Verify `dsh --profile toolbox --dump-config`, then run a real tool smoke test.
-
-### A newer DSH release is available
-
-This MVP is pinned to RC.6. Use Compatibility Radar and repeat an isolated installation/tool-execution test before changing the declared ranges.
-
-## Development and verification
-
-```sh
-npm run check
-npm run pack:check
-```
-
-The `check` command validates all four Profile Bundle manifests and runs the complete test suite. The release gate also includes package dry-runs, Preflight self-scans, current/breaking Compatibility Radar matrices, secret review, and an isolated DSH install/config-load/tool-execution smoke test.
-
-Version `0.2.1` contains 31 registered tools across the four bundles. npm publication and a GitHub Release remain intentionally deferred pending user feedback and an explicit release decision.
 
 ## License: noncommercial use only
 
