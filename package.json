@@ -1,6 +1,6 @@
 {
   "name": "dsh-toolbox",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "workspaces": [
     "packages/*"
@@ -16,7 +16,7 @@
     "check": "node scripts/validate-workspace.js && npm test",
     "pack:check": "npm pack --dry-run --workspace @dsh-toolbox/product-research-workbench && npm pack --dry-run --workspace @dsh-toolbox/context-switchboard && npm pack --dry-run --workspace @dsh-toolbox/plugin-preflight && npm pack --dry-run --workspace @dsh-toolbox/compatibility-radar"
   },
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/AiWhale980728/dsh-toolbox.git"

@@ -1,5 +1,7 @@
 # Third-Party Notices
 
+The PolyForm Noncommercial restriction covers original DSH Toolbox code only. It does not relicense third-party packages, trademarks, documentation, or other materials.
+
 DSH Toolbox is an independent project built for DeepSeek Harness. DeepSeek Harness and its Cordis/tool packages are maintained by their respective copyright holders and distributed under their own terms.
 
 Implementation patterns were studied from publicly visible DSH plugins including `dsh-openapi` and `dsh-context-doctor`. No source code from those projects is copied into this repository.

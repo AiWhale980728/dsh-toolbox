@@ -7,7 +7,7 @@ A local-first MVP that turns pasted text and public web pages into traceable evi
 ```sh
 mkdir -p dist
 npm pack --workspace @dsh-toolbox/product-research-workbench --pack-destination dist
-dsh plugin --profile web add ./dist/dsh-toolbox-product-research-workbench-0.2.0.tgz
+dsh plugin --profile web add ./dist/dsh-toolbox-product-research-workbench-0.2.1.tgz
 ```
 
 Restart or reload the selected profile as required by your DSH release candidate.
@@ -54,3 +54,7 @@ config:
 - The tested target is DSH `0.1.0-rc.6`; repeat an isolated install check before changing RCs.
 
 The SQLite database and generated reports may contain private or copyrighted material. They are ignored by the repository defaults; review reports before sharing. See the repository privacy and security policies.
+
+## License
+
+Source-available under the PolyForm Noncommercial License 1.0.0. Commercial use is not permitted; see the packaged `LICENSE` file.

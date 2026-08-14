@@ -40,4 +40,4 @@
 - [x] Isolated installation/config-load/tool-execution smoke test against `@deepseek-ai/dsh@0.1.0-rc.6`
 - [ ] Cross-platform user feedback and hardening
 
-The source repository is public under MIT. npm publication and GitHub Releases remain intentionally deferred pending cross-platform feedback and an explicit release decision.
+The `0.2.1` source is public under the PolyForm Noncommercial License 1.0.0; commercial use is not permitted. Earlier MIT grants remain applicable to copies received under those earlier releases. npm publication and GitHub Releases remain intentionally deferred pending cross-platform feedback and an explicit release decision.

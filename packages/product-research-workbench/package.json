@@ -1,6 +1,6 @@
 {
   "name": "@dsh-toolbox/product-research-workbench",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Local-first URL/text product research, human evidence, lifecycle management, scoring, backup, and Markdown/HTML reports for DeepSeek Harness.",
   "type": "module",
   "main": "./index.js",
@@ -16,7 +16,7 @@
     "README.md",
     "LICENSE"
   ],
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
   },

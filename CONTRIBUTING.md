@@ -9,4 +9,4 @@ Contributions are welcome while the project is experimental.
 5. Do not commit private research data, databases, reports, tokens, cookies, or sessions.
 6. Record copied or adapted third-party code and its license in `THIRD_PARTY_NOTICES.md`.
 
-By contributing, you agree that your contribution is licensed under the repository's MIT License.
+By contributing, you agree that your contribution may be distributed under the repository's current PolyForm Noncommercial License 1.0.0. Commercial use is not permitted unless the copyright holder grants separate written terms.

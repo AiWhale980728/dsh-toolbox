@@ -13,3 +13,7 @@ Local-first MVP for discovering DSH plugins, checking them against a target runt
 - `compatibility_report` — write private Markdown/HTML upgrade reports with remediation guidance.
 
 The MVP understands the common exact, comparison, caret, tilde, wildcard, and `||` semver ranges used by current DSH plugins. It reads only explicitly supplied local package directories under the active session working directory (or operator-configured `allowedRoots`), does not install or upgrade anything, and performs no background network calls. Pre-release semver remains subtle: verify a release candidate with a real DSH install smoke test before publishing.
+
+## License
+
+Source-available under the PolyForm Noncommercial License 1.0.0. Commercial use is not permitted; see the packaged `LICENSE` file.

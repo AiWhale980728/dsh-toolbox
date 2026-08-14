@@ -19,3 +19,7 @@ Activation contributes the bounded packet through DSH's native `systemPrompt.con
 Profiles support positive/negative keywords, priority, enable/disable state, resource pointers, and per-profile token budgets. Activation history is per DSH session id; rolling back reveals the previous active receipt.
 
 Data defaults to `~/.local/share/dsh-toolbox/context-switchboard/context.sqlite3`; set `dataDir` in the bundle config to change it. No resource paths are opened by the plugin: they are labels/provenance pointers only.
+
+## License
+
+Source-available under the PolyForm Noncommercial License 1.0.0. Commercial use is not permitted; see the packaged `LICENSE` file.

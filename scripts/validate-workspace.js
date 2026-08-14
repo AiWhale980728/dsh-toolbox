@@ -22,6 +22,9 @@ for (const packageName of packages) {
   if (manifest.dependencies?.['@deepseek-ai/dsh-tools'] !== '0.1.0-rc.6') {
     throw new Error(`${packageName}: must pin the loader-smoked DSH Tools runtime`)
   }
+  if (manifest.license !== 'SEE LICENSE IN LICENSE') {
+    throw new Error(`${packageName}: must point users to the packaged noncommercial license`)
+  }
   if (manifest.dsh?.bundle?.patch !== './cordis.patch.yml') {
     throw new Error(`${packageName}: missing DSH profile bundle patch`)
   }

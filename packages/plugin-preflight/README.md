@@ -7,3 +7,7 @@ Read-only MVP for reviewing a local DSH plugin directory before installation.
 Operators can configure policy with `allowedLicenses`, `allowedPackageScopes`, `blockedCapabilities`, and `maxRiskScore`. Policy violations are additional findings; they do not execute or quarantine the plugin.
 
 The scanner does not execute package scripts, install dependencies, follow symlinks, contact registries, or change DSH configuration. The DSH tool defaults to the active session working directory; operators may configure explicit `allowedRoots` in the bundle config. A clean result is not a security guarantee; inspect source and dependency provenance before installing untrusted code.
+
+## License
+
+Source-available under the PolyForm Noncommercial License 1.0.0. Commercial use is not permitted; see the packaged `LICENSE` file.
