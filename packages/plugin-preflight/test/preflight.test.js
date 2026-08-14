@@ -6,6 +6,11 @@ import { tmpdir } from 'node:os'
 import { scanPlugin } from '../src/preflight.js'
 import { registerPreflightTools } from '../src/tools.js'
 
+function defineRuntimeTool(options) {
+  assert.equal(typeof options.output?.render, 'function', `${options.name} must define output.render for DSH RC.6`)
+  return options
+}
+
 test('accepts this package without blocking bundle findings', async () => {
   const result = await scanPlugin(new URL('..', import.meta.url).pathname)
   assert.equal(result.package, '@dsh-toolbox/plugin-preflight')
@@ -58,8 +63,9 @@ test('tool report uses a private default directory and escapes hostile HTML', as
     await writeFile(join(pluginRoot, 'cordis.patch.yml'), "- insert:\n    - id: hostile\n      name: '@safe/<img src=x onerror=alert(1)>'\n")
     await writeFile(join(pluginRoot, 'LICENSE'), 'MIT')
     const registered = []
-    registerPreflightTools({ tools: { register: tool => registered.push(tool) } }, value => value, { dataDir })
+    registerPreflightTools({ tools: { register: tool => registered.push(tool) } }, defineRuntimeTool, { dataDir })
     const result = await registered[1].execute({ path: pluginRoot }, { agent: { session: { header: { cwd: pluginRoot } } } })
+    assert.match(registered[1].output.render({ path: pluginRoot }, result)[0].text, /"reports"/)
     const html = await readFile(result.reports.find(item => item.format === 'html').path, 'utf8')
     assert.doesNotMatch(html, /<img src=x/i)
     assert.match(html, /&lt;img src=x/)

@@ -9,7 +9,7 @@ body:
   - type: input
     id: plugin
     attributes:
-      label: Plugin and version
+      label: Component and version
     validations:
       required: true
   - type: input

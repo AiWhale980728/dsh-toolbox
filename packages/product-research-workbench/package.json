@@ -24,11 +24,12 @@
     "test": "node --test test/*.test.js",
     "check": "npm test && npm pack --dry-run"
   },
-  "dependencies": {
-    "@deepseek-ai/dsh-tools": "0.1.0-rc.6"
-  },
   "peerDependencies": {
+    "@deepseek-ai/dsh-tools": "0.1.0-rc.6",
     "@deepseek-ai/cordis": "^4.0.1"
+  },
+  "devDependencies": {
+    "@deepseek-ai/dsh-tools": "0.1.0-rc.6"
   },
   "dsh": {
     "bundle": {

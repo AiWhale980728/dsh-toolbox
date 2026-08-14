@@ -42,7 +42,10 @@ export function registerPreflightTools(ctx, defineTool = value => value, config 
     name: 'plugin_preflight_report',
     description: 'Scan a permitted local plugin and write Markdown plus self-contained HTML audit reports under the configured private data directory.',
     parameters: { path: { type: 'string', required: true }, maxFiles: { type: 'number' }, maxFileBytes: { type: 'number' } },
-    output: { schema: { type: 'object', additionalProperties: true } },
+    output: {
+      schema: { type: 'object', additionalProperties: true },
+      render: (_args, result) => [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+    },
     async execute(args, exec) {
       const result = await scanPlugin(await permittedPath(args.path, exec, config), { ...args, policy: config.policy })
       const directory = join(config.dataDir, 'reports')

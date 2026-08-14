@@ -1,0 +1,42 @@
+{
+  "name": "@dsh-toolbox/dsh-switchboard",
+  "version": "0.1.0",
+  "description": "Local DSH profile and plugin control plane with adapters, change plans, preflight, compatibility checks, backups, and rollback.",
+  "type": "module",
+  "main": "./index.js",
+  "bin": {
+    "dsh-switchboard": "./bin/dsh-switchboard.js"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "bin",
+    "index.js",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "private": true,
+  "license": "SEE LICENSE IN LICENSE",
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AiWhale980728/dsh-toolbox.git",
+    "directory": "packages/dsh-switchboard"
+  },
+  "keywords": [
+    "deepseek",
+    "deepseek-harness",
+    "dsh-plugin",
+    "profile-manager",
+    "local-first",
+    "sqlite"
+  ]
+}

@@ -19,8 +19,14 @@ for (const packageName of packages) {
   if (manifest.version !== rootManifest.version) {
     throw new Error(`${packageName}: version ${manifest.version} does not match workspace ${rootManifest.version}`)
   }
-  if (manifest.dependencies?.['@deepseek-ai/dsh-tools'] !== '0.1.0-rc.6') {
-    throw new Error(`${packageName}: must pin the loader-smoked DSH Tools runtime`)
+  if (manifest.dependencies?.['@deepseek-ai/dsh-tools']) {
+    throw new Error(`${packageName}: DSH Tools must not be a production dependency; a duplicate runtime breaks scheduler symbol identity`)
+  }
+  if (manifest.peerDependencies?.['@deepseek-ai/dsh-tools'] !== '0.1.0-rc.6') {
+    throw new Error(`${packageName}: must peer-pin the loader-smoked DSH Tools runtime`)
+  }
+  if (manifest.devDependencies?.['@deepseek-ai/dsh-tools'] !== '0.1.0-rc.6') {
+    throw new Error(`${packageName}: must keep DSH Tools available for local development only`)
   }
   if (manifest.license !== 'SEE LICENSE IN LICENSE') {
     throw new Error(`${packageName}: must point users to the packaged noncommercial license`)
@@ -38,4 +44,20 @@ for (const packageName of packages) {
   }
 }
 
-console.log(`Validated ${packages.length} DSH profile bundles.`)
+const switchboardDir = join(root.pathname, 'packages', 'dsh-switchboard')
+const switchboard = JSON.parse(await readFile(join(switchboardDir, 'package.json'), 'utf8'))
+if (switchboard.name !== '@dsh-toolbox/dsh-switchboard' || switchboard.private !== true) {
+  throw new Error('dsh-switchboard: control plane must remain a private workspace package during technical preview')
+}
+if (switchboard.dsh?.bundle) throw new Error('dsh-switchboard: external control plane must not declare itself as an in-process DSH bundle')
+if (switchboard.scripts?.preinstall || switchboard.scripts?.install || switchboard.scripts?.postinstall || switchboard.scripts?.prepare) {
+  throw new Error('dsh-switchboard: install lifecycle scripts require an explicit security review')
+}
+for (const path of ['index.js', 'bin/dsh-switchboard.js', 'src/dsh-adapter.js', 'README.md', 'LICENSE']) {
+  await access(join(switchboardDir, path))
+}
+if (await readFile(join(switchboardDir, 'LICENSE'), 'utf8') !== await readFile(join(root.pathname, 'LICENSE'), 'utf8')) {
+  throw new Error('dsh-switchboard: packaged noncommercial license must match the repository license exactly')
+}
+
+console.log(`Validated ${packages.length} DSH profile bundles and the external Switchboard control plane.`)

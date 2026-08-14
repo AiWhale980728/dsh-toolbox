@@ -19,6 +19,9 @@ Do not open a public issue containing exploit details, secrets, private research
 - Product Research imports require explicit full-content exports, cap size/count, verify SHA-256 content hashes when present, and remove a newly created project if restoration fails.
 - Plugin Preflight is heuristic static analysis, not a sandbox or security guarantee. It may miss transitive, obfuscated, native, generated, or runtime behavior. Its SBOM is manifest-derived, not a resolved dependency graph.
 - Compatibility results are advisory. Pre-release semver and unsupported ranges require a real installation test.
+- DSH Switchboard refuses symlinked profile directories and managed files, validates profile names, locks cooperating writes, rejects stale state hashes, backs up before atomic rename, and restores after validation failure. These controls do not stop an unrelated process from editing the same profile outside Switchboard.
+- Switchboard invokes `dsh --profile <name> --dump-config` without a shell. DSH and every configured bundle are trusted local code; a successful config dump is a compatibility check, not a sandbox or malware analysis.
+- Switchboard intentionally leaves dependency installation/removal to the official `dsh plugin` workflow. Do not hand-edit profile lockfiles or approve third-party lifecycle builds without provenance review.
 - Dependency additions require license, provenance, and maintenance review. Packages intentionally have no install lifecycle scripts.
 
 ## Release checklist
@@ -31,5 +34,6 @@ Before a source milestone or package release:
 4. Run current and deliberate-breaking Compatibility Radar matrices.
 5. Run secret scanning and inspect `git diff --check` plus staged files.
 6. Install all four packed bundles into an isolated `DSH_HOME` with the documented DSH RC; verify `--dump-config`, all 31 tool registrations, native runtime context, and representative tool calls.
+7. Run Switchboard tests against an isolated `DSH_HOME`; verify stale-plan rejection, failed-validation restore, later-edit rollback refusal, private reports, and a real installed-CLI config dump.
 
 Do not publish npm packages or create a GitHub Release when the pinned DSH installation smoke test has not passed.
