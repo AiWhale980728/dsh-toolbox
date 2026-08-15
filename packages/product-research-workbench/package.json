@@ -38,7 +38,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AiWhale980728/dsh-toolbox.git",
+    "url": "git+https://github.com/HiWhaleW/dsh-toolbox.git",
     "directory": "packages/product-research-workbench"
   },
   "keywords": [

@@ -1,2 +1,12 @@
 packages:
   - packages/*
+
+# These native/runtime builds are required by the pinned DSH CLI and Vite.
+# No other dependency lifecycle scripts are allowed by pnpm.
+allowBuilds:
+  '@deepseek-ai/dsh-subprocess-local': true
+  '@google/genai': false
+  esbuild: true
+  koffi: true
+  node-pty: true
+  protobufjs: false

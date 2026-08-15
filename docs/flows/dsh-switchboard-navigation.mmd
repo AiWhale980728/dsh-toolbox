@@ -1,0 +1,43 @@
+flowchart LR
+    user(["本地用户"])
+
+    subgraph shell ["固定应用框架"]
+        direction TB
+        nav["左侧导航"]
+        recent["右侧近期活动"]
+        footer["底部本地状态"]
+    end
+
+    subgraph center ["中间功能区"]
+        direction TB
+        profiles["Profiles 总览"]
+        plugins["插件管理"]
+        activity["活动中心"]
+        settings["本地设置"]
+    end
+
+    profileTask["选择与检查 Profile"]
+    pluginTask["预检与计划式变更"]
+    activityTask["筛选与查看详情"]
+    settingsTask["查看本地配置"]
+
+    user --> nav
+    nav -->|"Profiles"| profiles
+    nav -->|"插件"| plugins
+    nav -->|"活动"| activity
+    nav -->|"设置"| settings
+
+    profiles --> profileTask
+    plugins --> pluginTask
+    activity --> activityTask
+    settings --> settingsTask
+
+    recent -->|"查看全部"| activity
+    profileTask -.-> recent
+    pluginTask -.-> recent
+    footer -.-> settings
+
+    style shell fill:#C2E5FF,stroke:#3DADFF
+    style center fill:#DCCCFF,stroke:#874FFF
+    style recent fill:#FFECBD,stroke:#FFC943
+

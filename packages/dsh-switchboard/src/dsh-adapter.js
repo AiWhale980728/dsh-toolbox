@@ -529,6 +529,17 @@ export class DshAdapter {
 
   history(options) { return { transactions: this.store.list(options) } }
 
+  addActivity(activity) { return this.store.addActivity(activity) }
+
+  activities(options) {
+    return {
+      activities: this.store.listActivities(options),
+      total: this.store.countActivities(options),
+    }
+  }
+
+  clearActivitiesForSession(sessionId) { return this.store.clearActivitiesForSession(sessionId) }
+
   close() {
     if (this.closed) return
     this.closed = true

@@ -22,6 +22,8 @@ Do not open a public issue containing exploit details, secrets, private research
 - DSH Switchboard refuses symlinked profile directories and managed files, validates profile names, locks cooperating writes, rejects stale state hashes, backs up before atomic rename, and restores after validation failure. These controls do not stop an unrelated process from editing the same profile outside Switchboard.
 - Switchboard invokes `dsh --profile <name> --dump-config` without a shell. DSH and every configured bundle are trusted local code; a successful config dump is a compatibility check, not a sandbox or malware analysis.
 - Switchboard intentionally leaves dependency installation/removal to the official `dsh plugin` workflow. Do not hand-edit profile lockfiles or approve third-party lifecycle builds without provenance review.
+- The standalone Switchboard GUI binds only to loopback, uses a restrictive Content Security Policy, limits JSON request bodies, rejects cross-site writes, and requires a random in-memory session token for mutation requests. Another process running as the same operating-system user may still read local Profile or backup files directly; the GUI is not a multi-user authorization boundary.
+- The GUI intentionally shows selected local paths and DSH diagnostics to its local operator. Screenshots and copied diagnostics should be treated as potentially sensitive before they are shared.
 - Dependency additions require license, provenance, and maintenance review. Packages intentionally have no install lifecycle scripts.
 
 ## Release checklist

@@ -1,0 +1,76 @@
+flowchart LR
+    user(["本地用户"])
+
+    subgraph shell ["固定应用框架"]
+        direction TB
+        nav["左侧导航"]
+        recent["右侧近期活动"]
+        footer["底部本地状态"]
+    end
+
+    subgraph pages ["中间功能页"]
+        direction TB
+        profiles["Profiles 总览"]
+        plugins["插件管理"]
+        activity["活动中心"]
+        settings["本地设置"]
+    end
+
+    subgraph core ["DSH 核心操作"]
+        direction TB
+        health["健康检查"]
+        plan["生成变更计划"]
+        review{"用户确认?"}
+        apply["备份并应用"]
+        validate{"DSH 验证通过?"}
+        rollback["安全回滚"]
+    end
+
+    subgraph activityData ["活动数据链路"]
+        direction TB
+        producer["操作事件"]
+        activityApi["活动 API"]
+        activityDb[("SQLite 活动表")]
+        query["查询与筛选"]
+        clear{"清除当前会话?"}
+    end
+
+    user --> nav
+    nav -->|"Profiles"| profiles
+    nav -->|"插件"| plugins
+    nav -->|"活动"| activity
+    nav -->|"设置"| settings
+
+    profiles --> health
+    plugins --> plan
+    plan --> review
+    review -->|"确认"| apply
+    review -->|"取消"| plugins
+    apply --> validate
+    validate -->|"是"| producer
+    validate -->|"否"| rollback
+    rollback --> producer
+    health --> producer
+
+    producer --> activityApi
+    activityApi <--> activityDb
+    activityDb --> query
+    query --> activity
+    query --> recent
+    recent -->|"查看全部"| activity
+    recent --> clear
+    clear -->|"确认"| activityApi
+    clear -->|"取消"| recent
+
+    settings -.-> footer
+
+    style shell fill:#C2E5FF,stroke:#3DADFF
+    style pages fill:#DCCCFF,stroke:#874FFF
+    style core fill:#CDF4D3,stroke:#66D575
+    style activityData fill:#FFECBD,stroke:#FFC943
+    style review fill:#FFECBD,stroke:#FFC943
+    style validate fill:#FFECBD,stroke:#FFC943
+    style clear fill:#FFECBD,stroke:#FFC943
+    style rollback fill:#FFCDC2,stroke:#FF7556
+    style activityDb fill:#C6FAF6,stroke:#5AD8CC
+

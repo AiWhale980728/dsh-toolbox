@@ -22,3 +22,10 @@ cookies/
 coverage/
 dist/
 .turbo/
+
+# Local design review and acceptance artifacts: may contain machine paths or test data.
+packages/dsh-switchboard-gui/AGENTS.md
+packages/dsh-switchboard-gui/audit/
+packages/dsh-switchboard-gui/design-qa*
+packages/dsh-switchboard-gui/qa-*
+docs/flows/dsh-switchboard-figjam-review.png

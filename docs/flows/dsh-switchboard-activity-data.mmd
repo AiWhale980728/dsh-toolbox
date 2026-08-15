@@ -1,0 +1,47 @@
+flowchart LR
+    subgraph producers ["本地操作事件"]
+        direction TB
+        health["健康检查"]
+        plan["计划与应用"]
+        rollback["备份与回滚"]
+        report["本地报告"]
+    end
+
+    eventService["活动服务"]
+    activityDb[("SQLite 活动表")]
+    queryApi["GET 活动列表"]
+
+    subgraph consumers ["界面读取"]
+        direction TB
+        recent["近期活动 8 条"]
+        activity["完整活动中心"]
+    end
+
+    viewAll["查看全部"]
+    clearButton["清除当前会话"]
+    confirm{"用户确认?"}
+    clearApi["DELETE 会话活动"]
+    refresh["刷新两个视图"]
+
+    health & plan & rollback & report --> eventService
+    eventService --> activityDb
+    activityDb --> queryApi
+    queryApi --> recent & activity
+
+    recent --> viewAll
+    viewAll --> activity
+
+    recent --> clearButton
+    clearButton --> confirm
+    confirm -->|"确认"| clearApi
+    confirm -->|"取消"| recent
+    clearApi --> activityDb
+    clearApi --> refresh
+    refresh --> recent & activity
+
+    style producers fill:#CDF4D3,stroke:#66D575
+    style consumers fill:#DCCCFF,stroke:#874FFF
+    style activityDb fill:#C6FAF6,stroke:#5AD8CC
+    style confirm fill:#FFECBD,stroke:#FFC943
+    style clearApi fill:#FFCDC2,stroke:#FF7556
+
