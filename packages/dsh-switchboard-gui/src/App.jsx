@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createDemoApi, detectDemoMode } from "./demo-api.js";
 
 const bundleMeta = {
   "@dsh-toolbox/product-research-workbench": { icon: "bi-search", tone: "blue", description: "产品研究与洞察生成工具集。" },
@@ -105,6 +106,7 @@ function ActivityItem({ activity, extended = false }) {
 }
 
 export function App() {
+  const demoMode = detectDemoMode();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
@@ -123,8 +125,11 @@ export function App() {
   const [activityLoading, setActivityLoading] = useState(false);
   const tokenRef = useRef("");
   const mainRef = useRef(null);
+  const demoApiRef = useRef(null);
+  if (demoMode && !demoApiRef.current) demoApiRef.current = createDemoApi();
 
   const api = useCallback(async (path, options = {}) => {
+    if (demoMode) return demoApiRef.current(path, options);
     const response = await fetch(path, {
       ...options,
       headers: {
@@ -136,7 +141,7 @@ export function App() {
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(payload.error || `请求失败 (${response.status})`);
     return payload;
-  }, []);
+  }, [demoMode]);
 
   const load = useCallback(async (profileName) => {
     setLoading(true);
@@ -209,7 +214,7 @@ export function App() {
       const result = await api(`/api/profiles/${encodeURIComponent(profile.name)}/health`, { method: "POST", body: "{}" });
       setData((current) => ({ ...current, health: result.health }));
       await refreshActivitySurfaces();
-      setToast({ kind: result.health.ok ? "success" : "error", message: result.health.ok ? "DSH 健康检查通过" : "健康检查发现问题，请查看运行信息" });
+      setToast({ kind: result.health.ok ? "success" : "error", message: result.health.ok ? (demoMode ? "在线演示：已模拟 DSH 健康检查" : "DSH 健康检查通过") : "健康检查发现问题，请查看运行信息" });
     } catch (healthError) {
       setToast({ kind: "error", message: healthError.message });
     } finally {
@@ -243,7 +248,7 @@ export function App() {
       await api(`/api/plans/${encodeURIComponent(plan.id)}/apply`, { method: "POST", body: JSON.stringify({ validateRuntime: true }) });
       setPlan(null);
       setPlanOpen(false);
-      setToast({ kind: "success", message: "Bundle 变更已应用，DSH 运行时验证通过" });
+      setToast({ kind: "success", message: demoMode ? "在线演示：变更只应用到当前浏览器内存" : "Bundle 变更已应用，DSH 运行时验证通过" });
       await load(profile.name);
     } catch (applyError) {
       setToast({ kind: "error", message: applyError.message });
@@ -259,7 +264,7 @@ export function App() {
       await api(`/api/transactions/${encodeURIComponent(rollbackTarget.id)}/rollback`, { method: "POST", body: JSON.stringify({ validateRuntime: true }) });
       setRollbackTarget(null);
       setBackupsOpen(false);
-      setToast({ kind: "success", message: "Profile 已恢复到所选备份并通过 DSH 验证" });
+      setToast({ kind: "success", message: demoMode ? "在线演示：已模拟备份恢复与验证" : "Profile 已恢复到所选备份并通过 DSH 验证" });
       await load(profile.name);
     } catch (rollbackError) {
       setToast({ kind: "error", message: rollbackError.message });
@@ -274,7 +279,7 @@ export function App() {
     try {
       const result = await api(`/api/profiles/${encodeURIComponent(profile.name)}/report`, { method: "POST", body: "{}" });
       await refreshActivitySurfaces();
-      setToast({ kind: "success", message: `已生成 ${result.reports.length} 份本地报告（Markdown + HTML）` });
+      setToast({ kind: "success", message: demoMode ? `在线演示：已模拟生成 ${result.reports.length} 份报告` : `已生成 ${result.reports.length} 份本地报告（Markdown + HTML）` });
     } catch (reportError) {
       setToast({ kind: "error", message: reportError.message });
     } finally {
@@ -414,12 +419,13 @@ export function App() {
   );
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${demoMode ? "demo-mode" : ""}`}>
+      {demoMode && <div className="demo-banner" role="note">{icon("bi-globe2")}<strong>在线交互演示</strong><span>所有操作仅在当前浏览器内存中模拟，刷新即复原；不会连接或读取你的 DSH。</span><a href="https://github.com/HiWhaleW/dsh-toolbox#five-minute-installation">安装本地完整版 {icon("bi-arrow-up-right")}</a></div>}
       <aside className="sidebar">
         <div className="brand"><div className="brand-name"><strong>DSH</strong> Switchboard</div><p>DeepSeek Harness 本地控制台</p></div>
         <nav aria-label="主要导航">{navItems.map(([key, iconName, label]) => <button key={key} className={activeNav === key ? "active" : ""} aria-current={activeNav === key ? "page" : undefined} onClick={() => navigate(key)}>{icon(iconName)}<span>{label}</span></button>)}</nav>
-        <div className="sidebar-runtime"><div className="runtime-label"><span className={data?.runtime?.installed ? "status-dot success" : "status-dot danger"} />{data?.runtime?.installed ? "DSH 运行中" : "DSH 未检测到"}</div><code>@deepseek-ai/dsh {data?.runtime?.version ?? "未安装"}</code><code>Node.js {data?.nodeVersion ?? "—"}</code><button className="secondary-button full" onClick={() => load(profile?.name)} disabled={loading}>{icon("bi-arrow-repeat")} 重新扫描</button></div>
-        <button className="sidebar-help" onClick={() => setToast({ kind: "info", message: "所有操作均在本机完成；变更前会先生成计划。" })}>{icon("bi-question-circle")} 帮助与反馈</button>
+        <div className="sidebar-runtime"><div className="runtime-label"><span className={data?.runtime?.installed ? "status-dot success" : "status-dot danger"} />{demoMode ? "DSH 演示数据" : data?.runtime?.installed ? "DSH 运行中" : "DSH 未检测到"}</div><code>@deepseek-ai/dsh {data?.runtime?.version ?? "未安装"}</code><code>Node.js {data?.nodeVersion ?? "—"}</code><button className="secondary-button full" onClick={() => load(profile?.name)} disabled={loading}>{icon("bi-arrow-repeat")} {demoMode ? "复原演示" : "重新扫描"}</button></div>
+        <button className="sidebar-help" onClick={() => setToast({ kind: "info", message: demoMode ? "在线演示只使用浏览器内存；本地安装后才会连接真实 DSH。" : "所有操作均在本机完成；变更前会先生成计划。" })}>{icon("bi-question-circle")} 帮助与反馈</button>
       </aside>
 
       <div className="workspace">
@@ -437,7 +443,7 @@ export function App() {
         </aside>
       </div>
 
-      <footer className="status-bar"><span>DSH 数据目录：<code>{data?.dshHome ?? "—"}</code></span><button onClick={() => navigate("settings")}>查看目录</button><span className="local-status"><span className="status-dot success" />本地优先 · 未连接云服务</span></footer>
+      <footer className="status-bar"><span>{demoMode ? "演示数据：" : "DSH 数据目录："}<code>{data?.dshHome ?? "—"}</code></span><button onClick={() => navigate("settings")}>{demoMode ? "查看演示说明" : "查看目录"}</button><span className="local-status"><span className="status-dot success" />{demoMode ? "安全演示 · 不读取本机" : "本地优先 · 未连接云服务"}</span></footer>
 
       {planOpen && plan && <Modal wide title="审阅 Bundle 变更" subtitle={`只会影响本地 DSH Profile “${plan.profile}”`} iconName="bi-shield-check" onClose={() => setPlanOpen(false)}><div className="plan-body"><div className="plan-notice">{icon("bi-info-circle")} 当前只是计划，尚未修改任何 Profile 文件。</div><div className="change-columns"><section><span>当前 Bundle</span>{plan.previousBundles.map((name) => <code key={name}>{name}</code>)}</section><span className="change-arrow">{icon("bi-arrow-right")}</span><section><span>变更后</span>{plan.nextBundles.map((name) => <code key={name}>{name}</code>)}</section></div><div className="change-summary">{plan.changes.additions.map((name) => <p key={`add-${name}`} className="addition">{icon("bi-plus-circle")} 启用 {name}</p>)}{plan.changes.removals.map((name) => <p key={`remove-${name}`} className="removal">{icon("bi-dash-circle")} 停用 {name}</p>)}{plan.changes.additions.length + plan.changes.removals.length === 0 && plan.changes.moved.map((name) => <p key={`move-${name}`}>{icon("bi-arrow-down-up")} 调整 {name} 的加载顺序</p>)}</div>{plan.warnings?.length > 0 && <div className="plan-warnings">{plan.warnings.map((warning) => <p key={warning}>{icon("bi-exclamation-triangle")} {warning}</p>)}</div>}<div className="safety-grid"><div>{icon("bi-archive")}<strong>先创建本地备份</strong><span>原始 Profile 可恢复</span></div><div>{icon("bi-fingerprint")}<strong>拒绝过期计划</strong><span>状态变化后不会误写</span></div><div>{icon("bi-arrow-counterclockwise")}<strong>验证失败自动恢复</strong><span>真实运行 DSH 校验</span></div></div></div><footer className="modal-actions"><button className="secondary-button" onClick={() => setPlanOpen(false)}>稍后处理</button><button className="primary-button" onClick={applyPlan} disabled={busy === "apply"}>{busy === "apply" ? <span className="mini-spinner" /> : icon("bi-shield-check")} 应用并验证</button></footer></Modal>}
 

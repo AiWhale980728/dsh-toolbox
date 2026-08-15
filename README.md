@@ -1,30 +1,63 @@
-# DSH Toolbox
+<p align="center">
+  <img src="docs/assets/dsh-toolbox-overview.png" alt="DSH Toolbox — 四个 DeepSeek Harness 插件与一个本地可视化控制台" width="920">
+</p>
 
-Four local-first, independently installable plugins for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness), plus an external profile and plugin control plane inspired by the useful operating patterns in [CC Switch](https://github.com/farion1231/cc-switch).
+<h1 align="center">DSH Toolbox</h1>
 
-![DSH Toolbox product overview: Product Research, Context Routing, Plugin Preflight, Compatibility Radar, and the local DSH Switchboard control plane](docs/assets/dsh-toolbox-overview.png)
+<p align="center">
+  给 DeepSeek Harness 的本地工具箱。<br>
+  产品研究、上下文切换、插件预检和兼容性监控，都收进一个安全的可视化控制台。
+</p>
 
-*One local toolbox: four DSH plugins feed a visual Switchboard, with SQLite storage and Markdown/HTML outputs kept on your computer.*
+<p align="center">
+  <img src="https://img.shields.io/badge/DSH-0.1.0--rc.6-0b6ff4?style=flat-square" alt="DSH 0.1.0-rc.6">
+  <img src="https://img.shields.io/badge/Node.js-22.19%2B-339933?style=flat-square&logo=node.js&logoColor=white" alt="Node.js 22.19+">
+  <img src="https://img.shields.io/badge/local--first-SQLite-168f91?style=flat-square&logo=sqlite&logoColor=white" alt="Local-first SQLite">
+  <img src="https://img.shields.io/badge/license-noncommercial-d63d4b?style=flat-square" alt="Noncommercial license">
+  <a href="https://github.com/HiWhaleW/dsh-toolbox/actions/workflows/ci.yml"><img src="https://github.com/HiWhaleW/dsh-toolbox/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+</p>
 
-> **Experimental MVP · Noncommercial use only.** DeepSeek Harness is in Developer Preview, so APIs and Profile Bundle compatibility may change between release candidates. DSH Toolbox is independent and is not affiliated with or endorsed by DeepSeek.
+<p align="center">
+  <a href="https://dsh-toolbox.lisongyang0130.chatgpt.site"><strong>在线交互演示</strong></a>
+  ·
+  <a href="#five-minute-installation"><strong>五分钟安装</strong></a>
+  ·
+  <a href="https://github.com/HiWhaleW/dsh-toolbox/issues"><strong>反馈问题</strong></a>
+</p>
 
-## In plain language
+> [!NOTE]
+> 在线版是安全演示：健康检查、Bundle 开关、变更计划、活动和回滚只在当前浏览器内存中模拟，刷新即复原。它不会连接访客电脑，也不会读取 DSH Profile、API 凭据或 SQLite 数据。安装本地版后才会接通真实 DSH 链路。
 
-DSH Toolbox is a local companion for DeepSeek Harness. It helps one person collect product research, switch working context, inspect a plugin before installation, and check whether plugins still match the current DSH runtime. DSH Switchboard brings those pieces together in one light-theme desktop-style web interface: select a DSH Profile on the left, work in the main panel, and keep recent operations visible in the fixed activity panel on the right.
+> [!IMPORTANT]
+> **Experimental MVP · 仅限非商业用途。** DeepSeek Harness 仍处于 Developer Preview，版本升级可能影响 Profile Bundle 兼容性。本项目独立开发，与 DeepSeek 无隶属或背书关系。
 
-Nothing here replaces DeepSeek Harness. The four plugins run as native DSH Profile Bundles; Switchboard stays outside the active Harness process so it can inspect and manage Profiles safely. Data stays local by default, every Profile change is previewed before it is applied, and applied changes create backups and receipts for rollback.
+## DSH Toolbox 是什么
 
-## What is included
+DSH Toolbox 是给单人本地工作流准备的 DeepSeek Harness 配套工具。四个插件作为原生 DSH Profile Bundles 运行；DSH Switchboard 则位于当前 Harness 进程之外，负责查看 Profile、运行健康检查、预览 Bundle 变更、创建备份并安全回滚。
 
-| Component | Daily-use workflow | Tools |
+默认没有账号、托管后端、行为分析、遥测、后台注册表检查或自动升级。真实运行数据保存在本机 SQLite；需要修改 Profile 时，一定先生成计划，用户确认后才写入，并保存可追溯的事务记录。
+
+## 五个组成部分
+
+| 组件 | 日常用途 | 工具数 |
 | --- | --- | ---: |
-| [`@dsh-toolbox/product-research-workbench`](packages/product-research-workbench) | Import URL/text evidence, curate findings, score opportunities, back up projects, and create Markdown/HTML reports. | 12 |
-| [`@dsh-toolbox/context-switchboard`](packages/context-switchboard) | Route work into bounded profiles, activate native runtime context, inspect receipts, and roll back. | 10 |
-| [`@dsh-toolbox/plugin-preflight`](packages/plugin-preflight) | Review a local bundle's package semantics, capabilities, policy, SBOM, and fingerprint before installation. | 2 |
-| [`@dsh-toolbox/compatibility-radar`](packages/compatibility-radar) | Discover bundles, compare them with a target runtime, save/diff snapshots, and create upgrade reports. | 7 |
-| [`@dsh-toolbox/dsh-switchboard`](packages/dsh-switchboard) | Discover DSH profiles, inspect bundle layers, plan changes, run safety gates, validate, back up, report, and roll back. | CLI/control plane |
+| [`@dsh-toolbox/product-research-workbench`](packages/product-research-workbench) | 导入 URL/文本证据，整理发现、评估机会、备份项目并生成 Markdown/HTML 报告。 | 12 |
+| [`@dsh-toolbox/context-switchboard`](packages/context-switchboard) | 把任务路由到有边界的上下文，激活原生运行时上下文并支持回滚。 | 10 |
+| [`@dsh-toolbox/plugin-preflight`](packages/plugin-preflight) | 安装前检查本地 Bundle 的包语义、能力、策略、SBOM 与指纹。 | 2 |
+| [`@dsh-toolbox/compatibility-radar`](packages/compatibility-radar) | 发现 Bundle，对比目标运行时，保存/比较快照并生成升级报告。 | 7 |
+| [`@dsh-toolbox/dsh-switchboard`](packages/dsh-switchboard) | 发现 DSH Profile、检查 Bundle、规划变更、验证、备份、报告与回滚。 | CLI / 控制面 |
 
-The first four rows are DSH Profile Bundles. DSH Switchboard deliberately runs outside the active Harness process so it does not rewrite the profile that booted it. All data and reports stay on the local machine by default. There are no accounts, hosted services, analytics, telemetry, background registry checks, or automatic upgrades.
+前四项是可以独立安装的 DSH Profile Bundles；第五项是统一的本地控制面。Product Research Workbench 和相关报告支持 Markdown + HTML 输出，运行数据默认使用 SQLite 保存。
+
+## 在线演示与本地完整版
+
+| 能力 | 在线演示 | 本地完整版 |
+| --- | --- | --- |
+| 查看四个页面和固定右侧活动栏 | 可用 | 可用 |
+| 切换 Profile、筛选活动、审阅 Bundle 计划 | 浏览器内存模拟 | 连接真实本地数据 |
+| 运行 `dsh --dump-config` 健康检查 | 模拟成功结果 | 真实执行 |
+| 写入 Profile、备份、回滚、生成报告 | 不写入，刷新即复原 | 计划确认后真实执行 |
+| 数据去向 | 当前浏览器内存 | 用户电脑上的 SQLite 与私有目录 |
 
 ## Requirements
 
