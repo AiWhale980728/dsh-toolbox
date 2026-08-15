@@ -55,6 +55,29 @@ code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
   background: var(--surface);
 }
 
+.app-shell.demo-mode { padding-top: 38px; }
+.demo-banner {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 60;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 18px;
+  border-bottom: 1px solid #9ec9f5;
+  background: #eaf4ff;
+  color: #284d78;
+  font-size: 11px;
+}
+.demo-banner > .bi { color: var(--blue); font-size: 14px; }
+.demo-banner strong { color: #173b66; }
+.demo-banner a { display: inline-flex; align-items: center; gap: 5px; margin-left: 8px; color: var(--blue); font-weight: 600; text-decoration: none; }
+.demo-banner a:hover { text-decoration: underline; }
+.demo-mode .sidebar { top: 38px; }
+.demo-mode .workspace { height: calc(100dvh - var(--footer-height) - 38px); }
+
 .sidebar {
   position: fixed;
   inset: 0 auto var(--footer-height) 0;
@@ -426,6 +449,13 @@ code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
 @media (max-width: 700px) {
   :root { --sidebar-width: 0px; --footer-height: 50px; }
   .app-shell { padding-left: 0; padding-bottom: 72px; }
+  .app-shell.demo-mode { padding-top: 48px; }
+  .demo-banner { height: 48px; justify-content: flex-start; overflow: hidden; }
+  .demo-banner span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .demo-banner a { flex: 0 0 auto; font-size: 0; }
+  .demo-banner a .bi { font-size: 14px; }
+  .demo-mode .sidebar { top: 0; }
+  .demo-mode .workspace { height: calc(100dvh - 58px - var(--footer-height) - 48px); }
   .sidebar { position: sticky; inset: 0 0 auto; width: 100%; height: 58px; flex-direction: row; align-items: center; border-right: 0; border-bottom: 1px solid var(--border); }
   .brand { padding: 0 14px; }
   .brand-name strong { font-size: 18px; }
