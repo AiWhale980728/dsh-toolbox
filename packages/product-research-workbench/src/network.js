@@ -89,7 +89,7 @@ function requestOnce(url, address, options, signal) {
       headers: {
         accept: 'text/html, text/plain;q=0.9, application/json;q=0.7',
         'accept-encoding': 'identity',
-        'user-agent': 'dsh-toolbox-product-research-workbench/0.1 (+https://github.com/AiWhale980728/dsh-toolbox)',
+        'user-agent': 'dsh-toolbox-product-research-workbench/0.1 (+https://github.com/HiWhaleW/dsh-toolbox)',
       },
       lookup: (_hostname, lookupOptions, callback) => lookupOptions?.all
         ? callback(null, [address])

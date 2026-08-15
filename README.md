@@ -4,7 +4,15 @@ Four local-first, independently installable plugins for [DeepSeek Harness](https
 
 ![DSH Toolbox product overview: Product Research, Context Routing, Plugin Preflight, Compatibility Radar, and the local DSH Switchboard control plane](docs/assets/dsh-toolbox-overview.png)
 
+*One local toolbox: four DSH plugins feed a visual Switchboard, with SQLite storage and Markdown/HTML outputs kept on your computer.*
+
 > **Experimental MVP · Noncommercial use only.** DeepSeek Harness is in Developer Preview, so APIs and Profile Bundle compatibility may change between release candidates. DSH Toolbox is independent and is not affiliated with or endorsed by DeepSeek.
+
+## In plain language
+
+DSH Toolbox is a local companion for DeepSeek Harness. It helps one person collect product research, switch working context, inspect a plugin before installation, and check whether plugins still match the current DSH runtime. DSH Switchboard brings those pieces together in one light-theme desktop-style web interface: select a DSH Profile on the left, work in the main panel, and keep recent operations visible in the fixed activity panel on the right.
+
+Nothing here replaces DeepSeek Harness. The four plugins run as native DSH Profile Bundles; Switchboard stays outside the active Harness process so it can inspect and manage Profiles safely. Data stays local by default, every Profile change is previewed before it is applied, and applied changes create backups and receipts for rollback.
 
 ## What is included
 
@@ -48,7 +56,7 @@ dsh --version
 Clone the source, create the four npm tarballs, and install them into one DSH profile:
 
 ```sh
-git clone https://github.com/AiWhale980728/dsh-toolbox.git
+git clone https://github.com/HiWhaleW/dsh-toolbox.git
 cd dsh-toolbox
 
 mkdir -p dist
@@ -75,7 +83,33 @@ You may install only the tarballs you need. Packing does not execute plugin code
 
 Each package pins the small DSH tool-definition runtime needed for reliable out-of-tree installation. There are no install lifecycle scripts.
 
-### Start DSH Switchboard
+### Open the DSH Switchboard GUI
+
+DSH Switchboard is a local settings app for DeepSeek Harness. It shows which Profiles and Profile Bundles are installed, checks whether a Profile can start, previews every change, and keeps a backup so the change can be rolled back safely.
+
+![Light-theme DSH Switchboard showing a real Profile health check, pending Bundle plan, Bundle inventory, and local activity](docs/assets/dsh-switchboard-gui.png)
+
+*The real light-theme interface: left-side navigation, a task-focused center panel, and a fixed recent-activity panel on the right.*
+
+The navigation opens four working views in the center panel:
+
+- **DSH Profiles** — inspect a Profile, run its DSH health check, review installed Bundles, and plan enable/disable changes.
+- **Plugins** — view the Bundle inventory and its compatibility status.
+- **Activity** — inspect local plans, validations, applied changes, and rollbacks.
+- **Settings** — review the detected DSH runtime and local data locations.
+
+Recent activity remains visible on the right while you move between views. Long lists scroll inside their own panels, so the overall application frame stays fixed and readable.
+
+From the repository checkout:
+
+```sh
+pnpm install --frozen-lockfile
+pnpm switchboard:gui
+```
+
+Then open `http://127.0.0.1:4173/`. The server listens only on the local computer. It reads Profiles from `$DSH_HOME/profiles`, never displays API credential values, and requires a review step before writing Profile files.
+
+### Use DSH Switchboard from the command line
 
 Switchboard is currently a source-distributed technical preview and is not an npm dependency of any DSH profile. Run it from the checkout:
 
